@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../main.dart' show ultimoErro;
 import 'package:flutter/services.dart';
 
 import '../conexao.dart';
@@ -178,6 +180,7 @@ class _SessaoPaginaState extends State<SessaoPagina> {
                 if (aberta) _barraFerramentas(c),
                 if (aberta && !_barra) _puxador(c),
                 if (aberta) _faixa(c),
+                if (aberta) Positioned(left: 8, bottom: 8, right: 8, child: IgnorePointer(child: _diagnostico())),
                 if (!aberta) Positioned.fill(child: _cobertura(c)),
               ]),
             ),
@@ -288,6 +291,26 @@ class _SessaoPaginaState extends State<SessaoPagina> {
               ]),
             ),
           ),
+        ),
+      );
+
+  /// Linha de diagnóstico (temporária): mostra por que a imagem não aparece.
+  Widget _diagnostico() => ValueListenableBuilder<int>(
+        valueListenable: con.tique,
+        builder: (context, _, __) => ValueListenableBuilder<String?>(
+          valueListenable: ultimoErro,
+          builder: (context, erro, __) {
+            final img = con.quadro;
+            final t = 'chegaram ${con.diagRecebidos} · aplicadas ${con.diagAplicados} · inteiras ${con.diagInteiros} · '
+                'base ${img == null ? "nenhuma" : "${img.width}×${img.height}"} · camadas ${con.camadas.length} · '
+                'pinturas ${con.diagPinturas} · ${con.diagPintura} · monitor ${con.monW.round()}×${con.monH.round()}'
+                '${con.diagErro != null ? " · erro: ${con.diagErro}" : ""}${erro != null ? " · flutter: $erro" : ""}';
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: const Color(0xCC000000), borderRadius: BorderRadius.circular(8)),
+              child: Text(t, style: const TextStyle(color: Colors.white, fontSize: 11)),
+            );
+          },
         ),
       );
 

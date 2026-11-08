@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'estado.dart';
 
@@ -69,6 +70,10 @@ class Conexao extends ChangeNotifier {
   ui.Image? quadro;
   final List<(int, int, ui.Image)> camadas = [];
   bool _achatando = false;
+  // diagnóstico
+  int diagRecebidos = 0, diagAplicados = 0, diagPinturas = 0, diagInteiros = 0;
+  String diagPintura = '';
+  String? diagErro;
   int fbW = 0, fbH = 0;
   final cursor = CursorRemoto();
   int cursorLocalAte = 0; // ms: até quando vale a posição prevista no tablet (touchpad)
@@ -359,6 +364,7 @@ class Conexao extends ChangeNotifier {
 
   void _quadro(Uint8List b) {
     _bytes += b.length;
+    diagRecebidos++;
     if (b.length < 12 || b[0] != 1) return;
     final bd = ByteData.sublistView(b);
     final w = bd.getUint16(2, Endian.little);
@@ -413,7 +419,8 @@ class Conexao extends ChangeNotifier {
         }
         _limparCamadas();
         quadro = inteiro.$3;
-        base?.dispose();
+        diagInteiros++;
+        if (base != null) _descartarDepois(base);
         camadas.addAll(depois);
       } else if (base == null || base.width != w || base.height != h) {
         // pedaços sem uma base do mesmo tamanho: guarda, mas pede a tela inteira
@@ -428,8 +435,10 @@ class Conexao extends ChangeNotifier {
       fbW = w;
       fbH = h;
       _quadros++;
+      diagAplicados++;
       if (camadas.length > 24 && !_achatando) _achatar(w, h);
-    } catch (_) {
+    } catch (e) {
+      diagErro = '$e'.split('\n').first;
       ok = false;
     }
     enviar({'t': 'a', 'id': id});
@@ -446,6 +455,15 @@ class Conexao extends ChangeNotifier {
   }
 
   Timer? _redesenho;
+
+  /// A imagem base ainda pode estar na tela até o próximo desenho: descarta só depois dele.
+  void _descartarDepois(ui.Image img) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => img.dispose());
+      SchedulerBinding.instance.scheduleFrame();
+    });
+    SchedulerBinding.instance.scheduleFrame();
+  }
 
   void _limparCamadas() {
     for (final c in camadas) {
@@ -485,7 +503,7 @@ class Conexao extends ChangeNotifier {
     }
     quadro = nova;
     camadas.removeRange(0, n);
-    base.dispose();
+    _descartarDepois(base);
     for (final i in usadas) {
       i.$3.dispose();
     }

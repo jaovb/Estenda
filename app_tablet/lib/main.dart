@@ -1,11 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'estado.dart';
 import 'paginas/inicio.dart';
 import 'tema.dart';
 
+/// Último erro interno (aparece no diagnóstico da tela remota).
+final ultimoErro = ValueNotifier<String?>(null);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final anterior = FlutterError.onError;
+  FlutterError.onError = (d) {
+    ultimoErro.value = d.exceptionAsString().split('\n').first;
+    anterior?.call(d);
+  };
+  PlatformDispatcher.instance.onError = (e, st) {
+    ultimoErro.value = '$e'.split('\n').first;
+    return true;
+  };
   final estado = Estado();
   await estado.carregar();
   runApp(PonteApp(estado: estado));

@@ -433,14 +433,24 @@ class _TelaRemotaState extends State<TelaRemota> {
         onPointerCancel: _subiu,
         onPointerHover: _hover,
         onPointerSignal: _sinal,
-        // reconstrói a pintura a cada quadro novo (e não só "pede para repintar"): em alguns
-        // Android a tela só era redesenhada quando outro widget mudava
-        child: ValueListenableBuilder<int>(
-          valueListenable: con.tique,
-          builder: (context, geracao, _) => CustomPaint(
-            size: caixa.biggest,
-            painter: _Pintor(con, v, c.tela, geracao),
-          ),
+        // a imagem base vai num RawImage (o jeito padrão do Flutter de mostrar imagens); os pedaços
+        // que mudaram e o cursor vão por cima. Tudo é reconstruído a cada quadro.
+        child: ListenableBuilder(
+          listenable: Listenable.merge([con.tique, v]),
+          builder: (context, _) {
+            v.definir(caixa.biggest, con.monW, con.monH);
+            final dst = Rect.fromLTWH(v.ox, v.oy, v.w * v.k, v.h * v.k);
+            final img = con.quadro;
+            return Stack(children: [
+              Positioned.fill(child: ColoredBox(color: c.tela)),
+              if (img != null)
+                Positioned.fromRect(
+                  rect: dst,
+                  child: RawImage(image: img, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+                ),
+              Positioned.fill(child: CustomPaint(painter: _Pintor(con, v, con.tique.value))),
+            ]);
+          },
         ),
       );
     });
@@ -448,40 +458,42 @@ class _TelaRemotaState extends State<TelaRemota> {
 }
 
 class _Pintor extends CustomPainter {
-  _Pintor(this.con, this.v, this.fundo, this.geracao) : super(repaint: Listenable.merge([con.tique, v]));
+  _Pintor(this.con, this.v, this.geracao);
   final Conexao con;
   final Vista v;
-  final Color fundo;
   final int geracao;
 
   @override
   void paint(Canvas canvas, Size s) {
-    canvas.drawRect(Offset.zero & s, Paint()..color = fundo);
-    final img = con.quadro;
-    if (img == null && con.camadas.isEmpty) return;
-    v.definir(s, con.monW, con.monH);
-    final fw = (con.fbW > 0 ? con.fbW : (img?.width ?? 1)).toDouble();
-    final fh = (con.fbH > 0 ? con.fbH : (img?.height ?? 1)).toDouble();
+    con.diagPinturas++;
     final dst = Rect.fromLTWH(v.ox, v.oy, v.w * v.k, v.h * v.k);
-    // base + pedaços que mudaram, na mesma escala (sem montar uma imagem nova a cada quadro)
-    final tinta = Paint()..filterQuality = FilterQuality.medium;
-    canvas.save();
-    canvas.clipRect(dst);
-    canvas.translate(dst.left, dst.top);
-    canvas.scale(dst.width / fw, dst.height / fh);
-    if (img != null) canvas.drawImage(img, Offset.zero, tinta);
-    for (final c in con.camadas) {
-      canvas.drawImage(c.$3, Offset(c.$1.toDouble(), c.$2.toDouble()), tinta);
-    }
-    canvas.restore();
-    if (con.cursor.visivel) {
-      final p = v.paraTela(con.cursor.x, con.cursor.y);
-      desenharCursor(canvas, p, con.cursor.forma, (v.k * 1.3).clamp(0.85, 1.6).toDouble());
+    con.diagPintura = '${s.width.round()}×${s.height.round()} → ${dst.left.round()},${dst.top.round()} '
+        '${dst.width.round()}×${dst.height.round()}';
+    try {
+      final fw = (con.fbW > 0 ? con.fbW : (con.quadro?.width ?? 1)).toDouble();
+      final fh = (con.fbH > 0 ? con.fbH : (con.quadro?.height ?? 1)).toDouble();
+      if (con.camadas.isNotEmpty) {
+        final tinta = Paint()..filterQuality = FilterQuality.medium;
+        canvas.save();
+        canvas.clipRect(dst);
+        canvas.translate(dst.left, dst.top);
+        canvas.scale(dst.width / fw, dst.height / fh);
+        for (final c in con.camadas) {
+          canvas.drawImage(c.$3, Offset(c.$1.toDouble(), c.$2.toDouble()), tinta);
+        }
+        canvas.restore();
+      }
+      if (con.cursor.visivel) {
+        final p = v.paraTela(con.cursor.x, con.cursor.y);
+        desenharCursor(canvas, p, con.cursor.forma, (v.k * 1.3).clamp(0.85, 1.6).toDouble());
+      }
+    } catch (e) {
+      con.diagErro = 'pintura: $e'.split('\n').first;
     }
   }
 
   @override
-  bool shouldRepaint(_Pintor old) => old.con != con || old.fundo != fundo || old.geracao != geracao;
+  bool shouldRepaint(_Pintor old) => true;
 }
 
 /// O cursor do Windows, desenhado no tablet (a captura da tela não inclui o cursor).
