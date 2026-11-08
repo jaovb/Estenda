@@ -19,6 +19,10 @@ if ($x -notmatch "usesCleartextTraffic") {
     $x = $x -replace "<application", "<application android:usesCleartextTraffic=`"true`""
 }
 $x = $x -replace 'android:label="[^"]*"', 'android:label="Estenda"'
+# usa o motor gráfico antigo (Skia): no Impeller a imagem da tela remota às vezes não aparecia
+if ($x -notmatch "EnableImpeller") {
+    $x = $x -replace "</application>", "    <meta-data android:name=`"io.flutter.embedding.android.EnableImpeller`" android:value=`"false`" />`r`n    </application>"
+}
 Set-Content $m $x -Encoding UTF8
 
 # o Kotlin se perde no cache incremental quando o projeto e o cache do Flutter ficam em discos

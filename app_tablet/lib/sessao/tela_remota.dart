@@ -433,9 +433,14 @@ class _TelaRemotaState extends State<TelaRemota> {
         onPointerCancel: _subiu,
         onPointerHover: _hover,
         onPointerSignal: _sinal,
-        child: CustomPaint(
-          size: caixa.biggest,
-          painter: _Pintor(con, v, c.tela),
+        // reconstrói a pintura a cada quadro novo (e não só "pede para repintar"): em alguns
+        // Android a tela só era redesenhada quando outro widget mudava
+        child: ValueListenableBuilder<int>(
+          valueListenable: con.tique,
+          builder: (context, geracao, _) => CustomPaint(
+            size: caixa.biggest,
+            painter: _Pintor(con, v, c.tela, geracao),
+          ),
         ),
       );
     });
@@ -443,10 +448,11 @@ class _TelaRemotaState extends State<TelaRemota> {
 }
 
 class _Pintor extends CustomPainter {
-  _Pintor(this.con, this.v, this.fundo) : super(repaint: Listenable.merge([con.tique, v]));
+  _Pintor(this.con, this.v, this.fundo, this.geracao) : super(repaint: Listenable.merge([con.tique, v]));
   final Conexao con;
   final Vista v;
   final Color fundo;
+  final int geracao;
 
   @override
   void paint(Canvas canvas, Size s) {
@@ -475,7 +481,7 @@ class _Pintor extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_Pintor old) => old.con != con || old.fundo != fundo;
+  bool shouldRepaint(_Pintor old) => old.con != con || old.fundo != fundo || old.geracao != geracao;
 }
 
 /// O cursor do Windows, desenhado no tablet (a captura da tela não inclui o cursor).

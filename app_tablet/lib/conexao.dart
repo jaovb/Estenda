@@ -435,7 +435,17 @@ class Conexao extends ChangeNotifier {
     enviar({'t': 'a', 'id': id});
     if (!ok) enviar({'t': 'completo'});
     tique.value++;
+    // desenha de novo um pouco depois: a imagem recém-decodificada pode ainda não estar na GPU
+    _redesenho?.cancel();
+    _redesenho = Timer(const Duration(milliseconds: 120), () {
+      if (!_fechado) tique.value++;
+      _redesenho = Timer(const Duration(milliseconds: 380), () {
+        if (!_fechado) tique.value++;
+      });
+    });
   }
+
+  Timer? _redesenho;
 
   void _limparCamadas() {
     for (final c in camadas) {
@@ -542,6 +552,7 @@ class Conexao extends ChangeNotifier {
   @override
   void dispose() {
     fechar();
+    _redesenho?.cancel();
     quadro?.dispose();
     quadro = null;
     _limparCamadas();
