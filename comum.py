@@ -13,7 +13,7 @@ import threading
 import time
 from pathlib import Path
 
-VERSAO = "1.7"
+VERSAO = "1.8"
 PROTOCOLO = 1
 PORTA_PADRAO = 24860
 PASTA = Path(os.environ.get("PONTE_REMOTA_CONFIG") or Path.home() / ".ponte-remota")

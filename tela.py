@@ -45,6 +45,7 @@ def _limiar(v: int) -> int:
 class Captura:
     def __init__(self):
         self._local = threading.local()
+        self._geracao = 0  # muda quando as telas do Windows mudam: força recriar a captura
         self._simulada = _CapturaSimulada() if controle.SIMULADO else None
         self._mss = None
         if not self._simulada:
@@ -54,11 +55,20 @@ class Captura:
             except ImportError:
                 comum.log("biblioteca mss ausente: usando a captura do Pillow (mais lenta)")
 
+    def renovar(self) -> None:
+        """Chame quando as telas mudarem (monitor novo, resolução, driver virtual instalado):
+        a mss guarda o desenho antigo das telas e passa a devolver imagem preta, sem erro."""
+        self._geracao += 1
+
     def capturar(self, mon: dict) -> Image.Image:
         if self._simulada:
             return self._simulada.desenhar(mon)
         try:
             img = self._capturar(mon)
+            if img.getbbox() is None and controle.area_de_trabalho() == "Default":
+                # tudo preto na área de trabalho normal: quase sempre é a captura velha; recria e tenta de novo
+                self._local.sct = None
+                img = self._capturar(mon)
         except Exception as e:
             self._local.sct = None
             raise ErroCaptura("segura" if controle.area_de_trabalho() != "Default" else "falhou") from e
@@ -69,8 +79,15 @@ class Captura:
     def _capturar(self, mon: dict) -> Image.Image:
         if self._mss:
             sct = getattr(self._local, "sct", None)
+            if sct is not None and getattr(self._local, "geracao", None) != self._geracao:
+                try:
+                    sct.close()
+                except Exception:
+                    pass
+                sct = None
             if sct is None:  # a mss guarda recursos por linha de execução: uma instância por linha
                 sct = self._local.sct = self._mss.mss()
+                self._local.geracao = self._geracao
             shot = sct.grab({"left": mon["x"], "top": mon["y"], "width": mon["w"], "height": mon["h"]})
             return Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
         from PIL import ImageGrab

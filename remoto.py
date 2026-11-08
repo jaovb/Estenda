@@ -832,6 +832,8 @@ class Sessao:
                 if novos != self.mons:
                     self.mons = novos
                     self.forcar = True
+                    self.srv.captura.renovar()
+                    comum.log("as telas do PC mudaram: captura renovada")
                     await self.enviar({"t": "monitores", "monitores": controle.nomes_monitores(novos),
                                        "monitor": min(self.monitor, len(novos) - 1)})
             try:
