@@ -452,15 +452,22 @@ class _Pintor extends CustomPainter {
   void paint(Canvas canvas, Size s) {
     canvas.drawRect(Offset.zero & s, Paint()..color = fundo);
     final img = con.quadro;
-    if (img == null) return;
+    if (img == null && con.camadas.isEmpty) return;
     v.definir(s, con.monW, con.monH);
+    final fw = (con.fbW > 0 ? con.fbW : (img?.width ?? 1)).toDouble();
+    final fh = (con.fbH > 0 ? con.fbH : (img?.height ?? 1)).toDouble();
     final dst = Rect.fromLTWH(v.ox, v.oy, v.w * v.k, v.h * v.k);
-    canvas.drawImageRect(
-      img,
-      Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
-      dst,
-      Paint()..filterQuality = FilterQuality.medium,
-    );
+    // base + pedaços que mudaram, na mesma escala (sem montar uma imagem nova a cada quadro)
+    final tinta = Paint()..filterQuality = FilterQuality.medium;
+    canvas.save();
+    canvas.clipRect(dst);
+    canvas.translate(dst.left, dst.top);
+    canvas.scale(dst.width / fw, dst.height / fh);
+    if (img != null) canvas.drawImage(img, Offset.zero, tinta);
+    for (final c in con.camadas) {
+      canvas.drawImage(c.$3, Offset(c.$1.toDouble(), c.$2.toDouble()), tinta);
+    }
+    canvas.restore();
     if (con.cursor.visivel) {
       final p = v.paraTela(con.cursor.x, con.cursor.y);
       desenharCursor(canvas, p, con.cursor.forma, (v.k * 1.3).clamp(0.85, 1.6).toDouble());

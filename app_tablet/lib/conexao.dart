@@ -63,7 +63,12 @@ class Conexao extends ChangeNotifier {
   String via = '';
   bool semSegundoMonitor = false;
 
+  /// A tela do PC: uma imagem base e, por cima, os pedaços que mudaram depois dela (em ordem).
+  /// De tempos em tempos os pedaços são "achatados" na base. Não usamos Picture.toImageSync a cada
+  /// quadro: no Impeller (Android) ela às vezes devolve imagem transparente e a tela "some".
   ui.Image? quadro;
+  final List<(int, int, ui.Image)> camadas = [];
+  bool _achatando = false;
   int fbW = 0, fbH = 0;
   final cursor = CursorRemoto();
   int cursorLocalAte = 0; // ms: até quando vale a posição prevista no tablet (touchpad)
@@ -377,7 +382,7 @@ class Conexao extends ChangeNotifier {
       return;
     }
     // decodifica em paralelo, mas aplica na ordem de chegada
-    _cadeia = _cadeia.then((_) => _aplicar(id, w, h, pedacos));
+    _cadeia = _cadeia.then((_) => _aplicar(id, w, h, pedacos)).catchError((Object _) {}); // um erro não trava os próximos
   }
 
   Future<void> _aplicar(int id, int w, int h, List<(int, int, Future<ui.Image>)> pedacos) async {
@@ -396,27 +401,84 @@ class Conexao extends ChangeNotifier {
       }
       return;
     }
-    final rec = ui.PictureRecorder();
-    final c = ui.Canvas(rec);
-    final tinta = ui.Paint();
-    final antigo = quadro;
-    if (antigo != null && antigo.width == w && antigo.height == h) c.drawImage(antigo, ui.Offset.zero, tinta);
-    for (final i in imgs) {
-      c.drawImage(i.$3, ui.Offset(i.$1.toDouble(), i.$2.toDouble()), tinta);
+    try {
+      final base = quadro;
+      final cobreTudo = imgs.any((i) => i.$1 == 0 && i.$2 == 0 && i.$3.width >= w && i.$3.height >= h);
+      if (cobreTudo) {
+        // quadro inteiro: vira a base nova, sem precisar montar nada
+        final inteiro = imgs.lastWhere((i) => i.$1 == 0 && i.$2 == 0 && i.$3.width >= w && i.$3.height >= h);
+        final depois = imgs.sublist(imgs.indexOf(inteiro) + 1);
+        for (final i in imgs.sublist(0, imgs.indexOf(inteiro))) {
+          i.$3.dispose();
+        }
+        _limparCamadas();
+        quadro = inteiro.$3;
+        base?.dispose();
+        camadas.addAll(depois);
+      } else if (base == null || base.width != w || base.height != h) {
+        // pedaços sem uma base do mesmo tamanho: guarda, mas pede a tela inteira
+        if (base != null) {
+          _limparCamadas();
+        }
+        camadas.addAll(imgs);
+        ok = false;
+      } else {
+        camadas.addAll(imgs);
+      }
+      fbW = w;
+      fbH = h;
+      _quadros++;
+      if (camadas.length > 24 && !_achatando) _achatar(w, h);
+    } catch (_) {
+      ok = false;
     }
-    final pic = rec.endRecording();
-    final novo = pic.toImageSync(w, h);
-    pic.dispose();
-    for (final i in imgs) {
-      i.$3.dispose();
-    }
-    quadro = novo;
-    fbW = w;
-    fbH = h;
-    antigo?.dispose();
-    _quadros++;
     enviar({'t': 'a', 'id': id});
     if (!ok) enviar({'t': 'completo'});
+    tique.value++;
+  }
+
+  void _limparCamadas() {
+    for (final c in camadas) {
+      c.$3.dispose();
+    }
+    camadas.clear();
+  }
+
+  /// Junta a base e as camadas atuais numa imagem só (assíncrono, sem travar a tela).
+  Future<void> _achatar(int w, int h) async {
+    final base = quadro;
+    if (base == null) return;
+    _achatando = true;
+    final n = camadas.length;
+    final usadas = camadas.sublist(0, n);
+    ui.Image? nova;
+    try {
+      final rec = ui.PictureRecorder();
+      final c = ui.Canvas(rec);
+      final tinta = ui.Paint();
+      c.drawImage(base, ui.Offset.zero, tinta);
+      for (final i in usadas) {
+        c.drawImage(i.$3, ui.Offset(i.$1.toDouble(), i.$2.toDouble()), tinta);
+      }
+      final pic = rec.endRecording();
+      nova = await pic.toImage(w, h);
+      pic.dispose();
+    } catch (_) {
+      nova = null;
+    }
+    _achatando = false;
+    // só troca se nada mudou a base nesse meio-tempo (um quadro inteiro, por exemplo)
+    if (nova == null || _fechado || !identical(quadro, base) || camadas.length < n ||
+        !identical(camadas[n - 1].$3, usadas[n - 1].$3)) {
+      nova?.dispose();
+      return;
+    }
+    quadro = nova;
+    camadas.removeRange(0, n);
+    base.dispose();
+    for (final i in usadas) {
+      i.$3.dispose();
+    }
     tique.value++;
   }
 
@@ -482,6 +544,7 @@ class Conexao extends ChangeNotifier {
     fechar();
     quadro?.dispose();
     quadro = null;
+    _limparCamadas();
     _avisos.close();
     _clip.close();
     tique.dispose();
