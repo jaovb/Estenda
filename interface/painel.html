@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estenda</title>
+<link rel="icon" href="/icone.png">
+<style>
+:root, :root[data-theme="light"] {
+  --bg: #f6f7fb; --card: #ffffff; --card2: #f0f1f7; --borda: #e6e8f0;
+  --texto: #1f2330; --suave: #5f6475; --fraco: #9a9eae;
+  --sombra: 0 10px 28px -10px rgba(59, 64, 96, .18), 0 2px 6px rgba(59, 64, 96, .06);
+  --azul: #d6e6f8; --azul-f: #2f6ea5;
+  --menta: #d5f3e6; --menta-f: #2e7d5b;
+  --lavanda: #e6def6; --lavanda-f: #6b5aa6;
+  --pessego: #ffe6d5; --pessego-f: #b4693c;
+  --sobre-forte: #ffffff;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #1a1a2e; --card: #23233b; --card2: #2c2c47; --borda: #36365a;
+  --texto: #e9e8f2; --suave: #a4a3c0; --fraco: #747396;
+  --sombra: 0 12px 30px -12px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .25);
+  --azul: #2e3653; --azul-f: #a9c8ec;
+  --menta: #2c3b48; --menta-f: #a8e6cf;
+  --lavanda: #35324f; --lavanda-f: #c9b8e8;
+  --pessego: #3a3343; --pessego-f: #ffcfae;
+  --sobre-forte: #1a1a2e;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--texto);
+  font: 15px/1.5 "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+body, .card, .gaveta, .redondo, .switch .trilho, .seg, .linha, input {
+  transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .25s ease;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--lavanda-f); outline-offset: 2px; }
+svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---------------------------------------------------------------- estrutura */
+.pagina { max-width: 720px; margin: 0 auto; padding: 26px 22px 60px; }
+.topo { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+.marca { font-size: 24px; font-weight: 800; letter-spacing: -.02em; flex: 1; display: flex; align-items: center; gap: 12px; }
+.logo { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: linear-gradient(135deg, #c9b8e8, #a8e6cf); color: #23263a; }
+.redondo {
+  width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--borda); background: var(--card);
+  display: grid; place-items: center; box-shadow: var(--sombra); color: var(--texto); transition: transform .15s;
+}
+.redondo:hover { transform: translateY(-1px); }
+.redondo:active { transform: scale(.92); }
+h1 { font-size: 20px; font-weight: 600; margin: 0 0 2px; letter-spacing: -.01em; }
+.sub { color: var(--suave); font-size: 13.5px; font-weight: 600; margin: 0 0 18px; }
+.secao { color: var(--suave); font-size: 13px; font-weight: 700; margin: 26px 4px 10px; letter-spacing: .01em; }
+
+.card {
+  background: var(--card); border: 1px solid var(--borda); border-radius: 24px; box-shadow: var(--sombra);
+  padding: 18px 20px;
+}
+.card + .card { margin-top: 14px; }
+.toca { cursor: pointer; transition: transform .15s ease, box-shadow .25s ease; }
+.toca:hover { transform: translateY(-2px); }
+.toca:active { transform: scale(.985); }
+
+.linha-card { display: flex; align-items: center; gap: 16px; }
+.icone { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; flex: none; }
+.icone svg.i { width: 28px; height: 28px; }
+.icone.circ { width: 44px; height: 44px; border-radius: 50%; }
+.icone.circ svg.i { width: 22px; height: 22px; }
+.az { background: var(--azul); color: var(--azul-f); }
+.me { background: var(--menta); color: var(--menta-f); }
+.la { background: var(--lavanda); color: var(--lavanda-f); }
+.pe { background: var(--pessego); color: var(--pessego-f); }
+.cinza { background: var(--card2); color: var(--fraco); }
+.txt { flex: 1; min-width: 0; }
+.txt strong { display: block; font-size: 17px; font-weight: 700; line-height: 1.3; }
+.txt span { color: var(--suave); font-size: 14px; }
+.seta { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; flex: none; color: var(--sobre-forte); border: 0; }
+.seta.az { background: var(--azul-f); } .seta.me { background: var(--menta-f); }
+
+/* chave liga/desliga */
+.switch { position: relative; width: 58px; height: 34px; flex: none; }
+.switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
+.switch .trilho { position: absolute; inset: 0; border-radius: 999px; background: var(--card2); border: 1px solid var(--borda); }
+.switch .trilho::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .18); transition: transform .28s cubic-bezier(.3, 1.4, .5, 1);
+}
+.switch input:checked + .trilho { background: var(--menta-f); border-color: var(--menta-f); }
+.switch input:checked + .trilho::after { transform: translateX(24px); }
+.switch.peq { width: 48px; height: 28px; }
+.switch.peq .trilho::after { width: 20px; height: 20px; }
+.switch.peq input:checked + .trilho::after { transform: translateX(20px); }
+
+.numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.numeros .card { margin: 0; }
+.numero { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin-top: 14px; line-height: 1.2; }
+.rotulo { color: var(--suave); font-size: 14px; }
+
+.erro { color: var(--pessego-f); font-size: 14px; margin: 12px 0 0; }
+.erro:empty { display: none; }
+.btn { background: var(--lavanda-f); color: var(--sobre-forte); border: 0; border-radius: 14px; padding: 11px 18px; font-weight: 700; }
+.btn-sec { background: var(--card2); border: 1px solid var(--borda); border-radius: 14px; padding: 10px 16px; font-weight: 600; }
+.btn-peq { background: var(--card2); border: 1px solid var(--borda); border-radius: 12px; padding: 7px 12px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.btn-perigo { background: none; border: 1px solid color-mix(in srgb, var(--pessego-f) 50%, transparent); color: var(--pessego-f); border-radius: 14px; padding: 10px 16px; font-weight: 600; }
+.linha-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+/* conectar */
+.linha { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--card2); }
+.linha + .linha { margin-top: 8px; }
+.linha .rot { color: var(--suave); font-size: 13px; font-weight: 600; min-width: 74px; }
+.linha .val { flex: 1; font: 600 15.5px/1.3 "Cascadia Mono", Consolas, ui-monospace, monospace; word-break: break-all; }
+.linha .val small { display: block; font: 500 12px/1.3 "Segoe UI", system-ui, sans-serif; color: var(--suave); }
+.dica { color: var(--suave); font-size: 14px; margin: 14px 2px 0; }
+.qr-bloco { display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--borda); }
+.qr { position: relative; width: 150px; height: 150px; border-radius: 16px; background: #fff; padding: 6px; }
+.qr svg { width: 100%; height: 100%; display: block; }
+.qr .selo { position: absolute; inset: 0; border-radius: 16px; display: grid; place-items: center; text-align: center; background: rgba(255, 255, 255, .9); color: #1f2330; font-weight: 700; font-size: 14px; padding: 10px; }
+.qr-vazio { width: 100%; height: 100%; display: grid; place-items: center; color: #9a9eae; font-size: 13px; }
+.qr-texto strong { display: block; margin-bottom: 4px; }
+.qr-texto p { margin: 0; color: var(--suave); font-size: 13.5px; }
+.qr-estado { font: 12px Consolas, monospace; color: var(--fraco); margin-top: 8px !important; }
+.seg { display: inline-flex; background: var(--card2); border-radius: 12px; padding: 3px; margin-top: 10px; }
+.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 10px; font-size: 13px; color: var(--suave); font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--texto); box-shadow: 0 1px 4px rgba(0, 0, 0, .1); }
+
+/* aparelhos */
+.lista { padding: 6px 18px; }
+.item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--borda); }
+.item:last-child { border-bottom: 0; }
+.ponto { width: 10px; height: 10px; border-radius: 50%; background: var(--menta-f); box-shadow: 0 0 0 4px var(--menta); flex: none; }
+.item .txt strong { font-size: 15px; }
+.item .txt span { font-size: 13px; }
+.vazio { color: var(--suave); padding: 12px 0; font-size: 14px; }
+
+.longe-linha { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--borda); color: var(--suave); font-size: 14px; }
+.ponto-st { width: 9px; height: 9px; border-radius: 50%; background: var(--fraco); flex: none; }
+.ponto-st.ok { background: var(--menta-f); box-shadow: 0 0 0 4px var(--menta); }
+.ponto-st.esp { background: var(--azul-f); }
+.ponto-st.mal { background: var(--pessego-f); }
+.aviso { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 18px; margin-bottom: 14px; background: var(--pessego); color: var(--texto); }
+.aviso .txt { font-size: 14px; }
+
+details.registro { margin-top: 26px; }
+details.registro summary { cursor: pointer; color: var(--suave); font-size: 13px; font-weight: 600; }
+details.registro pre { margin: 10px 0 0; max-height: 220px; overflow: auto; background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 12px 14px; font: 12px/1.6 Consolas, monospace; color: var(--suave); white-space: pre-wrap; }
+
+/* gavetas (configurações e ajuda) */
+#fundo { position: fixed; inset: 0; background: rgba(20, 22, 40, .32); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 20; }
+#fundo.aberto { opacity: 1; pointer-events: auto; }
+.gaveta {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 100vw); z-index: 21; background: var(--bg);
+  border-left: 1px solid var(--borda); padding: 24px 22px 40px; overflow-y: auto;
+  transform: translateX(102%); transition: transform .38s cubic-bezier(.2, .8, .2, 1), background-color .35s;
+}
+.gaveta.aberta { transform: none; }
+.gaveta h2 { font-size: 22px; margin: 0; flex: 1; letter-spacing: -.01em; }
+.gaveta .topo { margin-bottom: 8px; }
+.opcao { display: flex; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--borda); }
+.opcao:last-child { border-bottom: 0; }
+.opcao .txt strong { font-size: 15px; }
+.opcao .txt span { font-size: 13px; }
+.campo { display: block; font-size: 13px; color: var(--suave); font-weight: 600; margin-top: 12px; }
+.campo input { display: block; width: 100%; margin-top: 6px; height: 44px; border-radius: 14px; border: 1px solid var(--borda); background: var(--card2); color: var(--texto); padding: 0 14px; font-size: 14px; }
+.campo input:focus { outline: none; border-color: var(--lavanda-f); }
+.ajuda h3 { font-size: 16px; margin: 0 0 6px; }
+.ajuda p, .ajuda li { color: var(--suave); font-size: 14px; margin: 0 0 8px; }
+.ajuda ol { padding-left: 20px; margin: 0; }
+.ajuda .card + .card { margin-top: 12px; }
+code { font-family: Consolas, monospace; font-size: 13px; color: var(--lavanda-f); }
+
+#fechado { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; text-align: center; background: color-mix(in srgb, var(--bg) 94%, transparent); }
+#fechado p { color: var(--suave); }
+
+/* entrada suave dos blocos */
+.surge { opacity: 0; transform: translateY(12px); animation: surgir .6s cubic-bezier(.2, .8, .2, 1) forwards; }
+@keyframes surgir { to { opacity: 1; transform: none; } }
+@media (max-width: 560px) { .numeros { grid-template-columns: 1fr; } .qr-bloco { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .surge { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-engrenagem" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-ajuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .9-1 1.6v.4M12 17h.01"/></symbol>
+  <symbol id="i-monitor-celular" viewBox="0 0 24 24"><rect x="2" y="4" width="14" height="10" rx="2"/><path d="M6 18h6M9 14v4"/><rect x="17" y="8" width="5" height="10" rx="1.5"/></symbol>
+  <symbol id="i-copia" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-seta" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-elo" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-energia" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 7.2a8 8 0 1 0 11.4 0"/></symbol>
+  <symbol id="i-fechar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-troca" viewBox="0 0 24 24"><path d="M4 8h14l-4-4M20 16H6l4 4"/></symbol>
+</svg>
+
+<div class="pagina">
+  <header class="topo surge">
+    <div class="marca"><span class="logo"><svg class="i"><use href="#i-troca"/></svg></span>Estenda</div>
+    <button class="redondo" id="abrir-ajuda" title="Ajuda"><svg class="i"><use href="#i-ajuda"/></svg></button>
+    <button class="redondo" id="abrir-config" title="Configurações"><svg class="i"><use href="#i-engrenagem"/></svg></button>
+  </header>
+
+  <div class="surge" style="animation-delay:.05s">
+    <h1>Olá! Vamos conectar o tablet?</h1>
+    <p class="sub">Ligue o acesso e abra o app Estenda no tablet</p>
+  </div>
+
+  <div id="avisos"></div>
+
+  <!-- acesso -->
+  <section class="card surge" style="animation-delay:.1s">
+    <div class="linha-card">
+      <div class="icone cinza" id="acesso-icone"><svg class="i"><use href="#i-energia"/></svg></div>
+      <div class="txt">
+        <strong id="acesso-tit">Acesso desligado</strong>
+        <span id="acesso-txt">Só entra quem tiver a senha deste PC.</span>
+      </div>
+      <label class="switch" title="Ligar ou desligar o acesso"><input type="checkbox" id="acesso"><span class="trilho"></span></label>
+    </div>
+    <div class="longe-linha" id="longe-linha"><span class="ponto-st" id="longe-ponto"></span><span id="longe-txt"></span></div>
+    <p class="erro" id="erro-ligar"></p>
+    <div class="linha-botoes" id="fechar-antigo-linha" hidden><button class="btn" id="fechar-antigo">Fechar o antigo e ligar aqui</button></div>
+  </section>
+
+  <!-- modos -->
+  <p class="secao surge" style="animation-delay:.15s">Modos</p>
+  <section class="card toca surge" style="animation-delay:.18s" id="card-segundo">
+    <div class="linha-card">
+      <div class="icone az"><svg class="i"><use href="#i-monitor-celular"/></svg></div>
+      <div class="txt"><strong>Segundo monitor</strong><span id="segundo-txt">Ganhe mais espaço estendendo sua tela</span></div>
+      <span class="seta az"><svg class="i"><use href="#i-seta"/></svg></span>
+    </div>
+  </section>
+  <section class="card toca surge" style="animation-delay:.22s" id="card-espelho">
+    <div class="linha-card">
+      <div class="icone me"><svg class="i"><use href="#i-copia"/></svg></div>
+      <div class="txt"><strong>Espelhamento do computador</strong><span id="espelho-txt">Mostre a mesma tela no tablet e controle o PC</span></div>
+      <span class="seta me"><svg class="i"><use href="#i-seta"/></svg></span>
+    </div>
+  </section>
+
+  <div class="numeros surge" style="animation-delay:.26s">
+    <section class="card">
+      <div class="icone circ la"><svg class="i"><use href="#i-elo"/></svg></div>
+      <div class="numero" id="n-conectados">0</div>
+      <div class="rotulo" id="n-conectados-rot">Conectados agora</div>
+    </section>
+    <section class="card">
+      <div class="icone circ pe"><svg class="i"><use href="#i-relogio"/></svg></div>
+      <div class="numero" id="n-uso">0 min</div>
+      <div class="rotulo">Uso na semana</div>
+    </section>
+  </div>
+
+  <!-- conectar -->
+  <p class="secao surge" style="animation-delay:.3s" id="secao-conectar">Conectar o tablet</p>
+  <section class="card surge" style="animation-delay:.32s">
+    <p class="dica" id="conectar-off" style="margin:0">Ligue o acesso para ver o endereço e a senha.</p>
+    <div id="conectar-on" hidden>
+      <div id="enderecos"></div>
+      <p class="dica">No app Estenda, este PC aparece sozinho em <b>Dispositivos</b> quando os dois estão no mesmo Wi-Fi.</p>
+      <div class="qr-bloco" id="apk-bloco" hidden>
+        <div class="qr" id="qr-apk"></div>
+        <div class="qr-texto">
+          <strong>Instalar o app no tablet Android</strong>
+          <p>Aponte a câmera do tablet: ele baixa o app <span id="apk-mb"></span> direto deste PC. Na primeira vez, o Android pede para permitir instalar apps desta origem: toque em <b>Configurações</b> e ligue a opção.</p>
+        </div>
+      </div>
+      <p class="dica" id="apk-falta" hidden>Ainda sem o app no tablet? Gere o APK com <code>app_tablet\gerar_apk.bat</code> e o QR para instalar aparece aqui.</p>
+      <div class="qr-bloco">
+        <div class="qr" id="qr"><div class="qr-vazio">gerando…</div></div>
+        <div class="qr-texto">
+          <strong id="qr-tit">Abrir no tablet</strong>
+          <p id="qr-txt"></p>
+          <div class="seg" id="qr-via"><button data-via="longe">App (casa e longe)</button><button data-via="local">Navegador · Wi-Fi</button><button data-via="tailscale">Tailscale</button></div>
+          <p class="qr-estado" id="qr-estado"></p>
+          <button class="btn-peq" id="qr-novo" style="margin-top:8px">Gerar outro</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- aparelhos -->
+  <p class="secao surge" style="animation-delay:.36s">Aparelhos</p>
+  <section class="card lista surge" style="animation-delay:.38s" id="aparelhos"></section>
+
+  <details class="registro">
+    <summary>Registro de atividade</summary>
+    <pre id="registro"></pre>
+  </details>
+</div>
+
+<div id="fundo"></div>
+
+<!-- configurações -->
+<aside class="gaveta" id="config" aria-label="Configurações">
+  <div class="topo"><h2>Configurações</h2><button class="redondo" data-fechar title="Fechar"><svg class="i"><use href="#i-fechar"/></svg></button></div>
+  <p class="secao">Aparência</p>
+  <section class="card">
+    <strong>Tema</strong>
+    <div><div class="seg" id="tema"><button data-t="sistema">Sistema</button><button data-t="light">Claro</button><button data-t="dark">Escuro</button></div></div>
+  </section>
+  <p class="secao">Opções</p>
+  <section class="card" style="padding-top:4px;padding-bottom:4px">
+    <div class="opcao"><div class="txt"><strong>Iniciar com o Windows</strong><span>Liga o acesso sozinho quando você entra na conta.</span></div><label class="switch peq"><input type="checkbox" data-cfg="iniciar_windows"><span class="trilho"></span></label></div>
+    <div class="opcao"><div class="txt"><strong>Não deixar o PC dormir</strong><span>Enquanto o acesso estiver ligado.</span></div><label class="switch peq"><input type="checkbox" data-cfg="nao_dormir"><span class="trilho"></span></label></div>
+    <div class="opcao"><div class="txt"><strong>Desligar e reiniciar pelo tablet</strong><span>Sempre com 10 segundos para cancelar.</span></div><label class="switch peq"><input type="checkbox" data-cfg="permitir_energia"><span class="trilho"></span></label></div>
+    <div class="opcao"><div class="txt"><strong>Só aceitar pelo Tailscale</strong><span>Desliga a entrada pelo Wi-Fi de casa.</span></div><label class="switch peq"><input type="checkbox" data-cfg="so_tailscale"><span class="trilho"></span></label></div>
+  </section>
+  <p class="secao">De longe (pela internet)</p>
+  <section class="card">
+    <p class="dica" style="margin:0">Para usar fora de casa e instalar o app no tablet ou no iPhone, publique uma vez o seu ponto de encontro grátis: rode <code>encontro\publicar.bat</code> e cole aqui o endereço que ele mostrar. A imagem e o controle vão direto entre o tablet e o PC; o encontro só apresenta os dois.</p>
+    <label class="campo">Endereço do ponto de encontro<input id="encontro" placeholder="https://estenda-encontro.seu-nome.workers.dev" autocomplete="off" spellcheck="false"></label>
+    <div class="linha-botoes"><button class="btn-sec" id="salvar-encontro">Salvar</button><button class="btn-sec" id="tirar-encontro">Desligar o acesso de longe</button></div>
+    <p class="erro" id="erro-encontro"></p>
+  </section>
+  <p class="secao">Senha e porta</p>
+  <section class="card">
+    <label class="campo">Escolher uma senha<input id="senha-nova" placeholder="pelo menos 8 letras ou números" autocomplete="off" spellcheck="false"></label>
+    <div class="linha-botoes"><button class="btn-sec" id="salvar-senha">Usar esta senha</button><button class="btn-sec" id="sortear">Sortear nova</button></div>
+    <label class="campo">Porta<input id="porta" inputmode="numeric" autocomplete="off"></label>
+    <div class="linha-botoes"><button class="btn-sec" id="salvar-porta">Salvar porta</button></div>
+    <p class="erro" id="erro-opcoes"></p>
+  </section>
+  <p class="secao">Encerrar</p>
+  <section class="card">
+    <p class="dica" style="margin:0 0 12px">Fechar a janela também encerra e desliga o acesso.</p>
+    <button class="btn-perigo" id="encerrar">Encerrar o Estenda no PC</button>
+  </section>
+</aside>
+
+<!-- ajuda -->
+<aside class="gaveta ajuda" id="ajuda" aria-label="Ajuda">
+  <div class="topo"><h2>Ajuda</h2><button class="redondo" data-fechar title="Fechar"><svg class="i"><use href="#i-fechar"/></svg></button></div>
+  <section class="card"><h3>Conectar</h3><ol>
+    <li>Ligue o acesso aqui.</li>
+    <li>No tablet, abra o app Estenda e toque em <b>Dispositivos</b>: este PC aparece se os dois estiverem no mesmo Wi-Fi.</li>
+    <li>Na primeira vez, digite a senha mostrada aqui. Depois o tablet entra sozinho.</li>
+  </ol></section>
+  <section class="card" id="ajuda-segundo"><h3>Segundo monitor</h3>
+    <p>O Windows só cria uma tela nova com um driver de vídeo. O Estenda instala um gratuito e de código aberto (<b>Virtual Display Driver</b>); o Windows pede permissão uma vez.</p>
+    <div class="linha-botoes"><button class="btn" id="criar-monitor">Criar a tela do tablet</button></div>
+    <p class="dica" id="monitor-msg"></p>
+    <p>Depois, em Configurações do Windows › Sistema › Tela, deixe em <b>Estender estas telas</b> e arraste a tela nova para o lado do monitor principal. No tablet, escolha <b>Segundo monitor</b>.</p>
+    <p>Se o botão não funcionar: baixe o instalador em github.com/VirtualDrivers/Virtual-Display-Driver (Releases), abra o "Virtual Driver Control" e clique em Install.</p>
+  </section>
+  <section class="card"><h3>De longe e app no tablet</h3>
+    <p>Uma vez só: dê dois cliques em <code>encontro\publicar.bat</code>. Ele instala o que faltar, abre o navegador para você entrar (ou criar, grátis) na conta da Cloudflare e configura o Estenda sozinho.</p>
+    <p>A conexão é direta entre o tablet e o PC (WebRTC, criptografada). Em algumas redes, sobretudo 4G/5G com os dois lados atrás de NAT restrito, o caminho direto pode não abrir; aí use outro Wi-Fi.</p>
+  </section>
+  <section class="card"><h3>Se não conectar</h3>
+    <p>Confira se o acesso está ligado e se o PC e o tablet estão no mesmo Wi-Fi.</p>
+    <p>O firewall do Windows pode barrar: rode o <code>liberar_firewall.bat</code> (ele libera só a rede de casa).</p>
+  </section>
+  <section class="card"><h3>Segurança</h3>
+    <p>Só a rede de casa (e o Tailscale, se você usar) consegue entrar; da internet aberta, nunca. A senha não passa pela rede: o tablet responde a um desafio com uma assinatura dela.</p>
+  </section>
+  <section class="card"><h3>Ainda não faz</h3>
+    <p>Som; ligar o PC de longe; ver a tela de bloqueio e os avisos de administrador (o Windows protege essas telas).</p>
+  </section>
+</aside>
+
+<div id="fechado" hidden><div><h2>O Estenda foi fechado</h2><p>Abra o aplicativo de novo para continuar.</p></div></div>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const TOKEN = new URLSearchParams(location.search).get("t") || "";
+let ultimoEncontro, E = null, viaQR = null, pedindoQR = false, erroQR = "", preenchido = false;
+
+/* ---------------------------------------------------------------- tema (sistema, claro, escuro) */
+const sistemaEscuro = matchMedia("(prefers-color-scheme: dark)");
+function ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function aplicarTema() {
+  const escolha = ler("tema-estenda") || "sistema";
+  document.documentElement.dataset.theme = escolha === "sistema" ? (sistemaEscuro.matches ? "dark" : "light") : escolha;
+  $$("#tema button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === escolha));
+}
+$$("#tema button").forEach(b => b.onclick = () => { guardar("tema-estenda", b.dataset.t); aplicarTema(); });
+sistemaEscuro.addEventListener("change", aplicarTema);
+aplicarTema();
+
+/* ---------------------------------------------------------------- gavetas */
+function abrir(id) { $("#fundo").classList.add("aberto"); $("#" + id).classList.add("aberta"); }
+function fecharGavetas() { $("#fundo").classList.remove("aberto"); $$(".gaveta").forEach(g => g.classList.remove("aberta")); }
+$("#abrir-config").onclick = () => abrir("config");
+$("#abrir-ajuda").onclick = () => abrir("ajuda");
+$("#fundo").onclick = fecharGavetas;
+$$("[data-fechar]").forEach(b => b.onclick = fecharGavetas);
+addEventListener("keydown", e => { if (e.key === "Escape") fecharGavetas(); });
+$("#card-segundo").onclick = () => { abrir("ajuda"); setTimeout(() => $("#ajuda-segundo").scrollIntoView({ behavior: "smooth", block: "center" }), 250); };
+$("#card-espelho").onclick = () => $("#secao-conectar").scrollIntoView({ behavior: "smooth", block: "start" });
+
+/* ---------------------------------------------------------------- API */
+async function api(caminho, corpo) {
+  const op = { headers: { "X-Token": TOKEN } };
+  if (corpo !== undefined) { op.method = "POST"; op.headers["Content-Type"] = "application/json"; op.body = JSON.stringify(corpo); }
+  const r = await fetch(caminho, op);
+  const j = await r.json().catch(() => ({ erro: "resposta inválida do app" }));
+  if (!r.ok) { const e = new Error(j.erro || "erro " + r.status); e.dados = j; throw e; }
+  return j;
+}
+async function acao(caminho, corpo, botao, erroEl) {
+  if (erroEl) erroEl.textContent = "";
+  if (botao) botao.disabled = true;
+  try {
+    E = await api(caminho, corpo || {}); render();
+    if (caminho === "/api/ligar") $("#fechar-antigo-linha").hidden = true;
+    return true;
+  } catch (e) {
+    if (erroEl) erroEl.textContent = e.message;
+    if (caminho === "/api/ligar") $("#fechar-antigo-linha").hidden = !(e.dados && e.dados.pode_fechar);
+    if (E) render();
+    return false;
+  } finally { if (botao) botao.disabled = false; }
+}
+let falhas = 0;
+async function atualizar() {
+  try { E = await api("/api/estado"); falhas = 0; $("#fechado").hidden = true; render(); }
+  catch (e) { if (++falhas >= 4) $("#fechado").hidden = false; }
+  setTimeout(atualizar, 700);
+}
+addEventListener("pagehide", () => { try { navigator.sendBeacon("/api/fechar?t=" + encodeURIComponent(TOKEN)); } catch (e) {} });
+
+$("#acesso").onchange = e => acao(e.target.checked ? "/api/ligar" : "/api/desligar", {}, null, $("#erro-ligar"));
+$("#fechar-antigo").onclick = e => acao("/api/ligar", { fechar_antigo: true }, e.currentTarget, $("#erro-ligar"));
+$$("[data-cfg]").forEach(c => c.onchange = () => acao("/api/config", { [c.dataset.cfg]: c.checked }, null, $("#erro-opcoes")));
+$("#sortear").onclick = e => acao("/api/senha", {}, e.currentTarget, $("#erro-opcoes"));
+$("#salvar-senha").onclick = async e => { if (await acao("/api/senha", { senha: $("#senha-nova").value }, e.currentTarget, $("#erro-opcoes"))) $("#senha-nova").value = ""; };
+$("#salvar-encontro").onclick = async e => { if (await acao("/api/config", { encontro: $("#encontro").value }, e.currentTarget, $("#erro-encontro"))) { $("#encontro").value = E.config.encontro; viaQR = "longe"; pedirQR(); } };
+$("#tirar-encontro").onclick = async e => { if (await acao("/api/config", { encontro: "" }, e.currentTarget, $("#erro-encontro"))) { $("#encontro").value = ""; viaQR = "local"; pedirQR(); } };
+$("#salvar-porta").onclick = e => acao("/api/config", { porta: $("#porta").value.trim() }, e.currentTarget, $("#erro-opcoes"));
+$("#encerrar").onclick = async e => { e.currentTarget.disabled = true; try { await api("/api/encerrar", {}); } catch (_) {} setTimeout(() => { $("#fechado").hidden = false; }, 600); };
+$("#criar-monitor").onclick = e => acao("/api/monitor/instalar", {}, e.currentTarget, $("#monitor-msg"));
+$("#qr-novo").onclick = () => pedirQR();
+$$("#qr-via button").forEach(b => b.onclick = () => { viaQR = b.dataset.via; pedirQR(); });
+
+async function pedirQR() {
+  if (pedindoQR || !E || !E.ligado) return;
+  pedindoQR = true; erroQR = "";
+  try { E = await api("/api/convite", { via: viaQR }); } catch (e) { erroQR = e.message; }
+  finally { pedindoQR = false; render(); }
+}
+function copiar(texto, botao) {
+  const feito = () => { botao.textContent = "Copiado"; setTimeout(() => botao.textContent = "Copiar", 1300); };
+  navigator.clipboard.writeText(texto).then(feito).catch(() => {
+    const t = document.createElement("textarea"); t.value = texto; document.body.append(t); t.select(); document.execCommand("copy"); t.remove(); feito();
+  });
+}
+
+/* ---------------------------------------------------------------- desenho */
+function el(tag, cls, texto) { const n = document.createElement(tag); if (cls) n.className = cls; if (texto != null) n.textContent = texto; return n; }
+function haQuanto(seg) {
+  const s = Math.max(0, Math.round(seg));
+  if (s < 60) return "agora";
+  if (s < 3600) return "há " + Math.round(s / 60) + " min";
+  if (s < 86400) return "há " + Math.round(s / 3600) + " h";
+  const d = Math.round(s / 86400); return "há " + d + (d === 1 ? " dia" : " dias");
+}
+function horas(seg) {
+  const min = Math.floor(seg / 60);
+  if (min < 60) return min + " min";
+  const h = Math.floor(min / 60), r = min % 60;
+  return h < 10 && r ? `${h}h ${r}min` : h + "h";
+}
+function linha(rot, valor, nota) {
+  const d = el("div", "linha");
+  const v = el("span", "val", valor);
+  if (nota) v.append(el("small", null, nota));
+  const b = el("button", "btn-peq", "Copiar"); b.onclick = () => copiar(valor, b);
+  d.append(el("span", "rot", rot), v, b);
+  return d;
+}
+function mudarSe(no, chave, fazer) { if (no.dataset.k !== chave) { no.dataset.k = chave; fazer(); } }
+
+function render() {
+  if (!E) return;
+  const ligado = E.ligado, end = E.enderecos || {};
+  if (!preenchido) { $("#porta").value = E.config.porta; $("#encontro").value = E.config.encontro || ""; preenchido = true; }
+
+  // avisos (inclui pedido de desligar vindo do tablet)
+  const falta = E.energia ? Math.max(0, Math.round(E.energia.prazo - Date.now() / 1000)) : null;
+  mudarSe($("#avisos"), JSON.stringify([E.avisos, E.energia && E.energia.acao, falta]), () => {
+    const itens = E.avisos.map(t => { const d = el("div", "aviso"); d.append(el("div", "txt", t)); return d; });
+    if (E.energia) {
+      const d = el("div", "aviso");
+      d.append(el("div", "txt", `O tablet pediu para ${E.energia.acao} este PC. Faltam ${falta} s.`));
+      const b = el("button", "btn", "Cancelar"); b.onclick = () => acao("/api/energia/cancelar", {}, b);
+      d.append(b); itens.unshift(d);
+    }
+    $("#avisos").replaceChildren(...itens);
+  });
+
+  // acesso
+  if (document.activeElement !== $("#acesso")) $("#acesso").checked = ligado;
+  $("#acesso-icone").className = "icone " + (ligado ? "me" : "cinza");
+  $("#acesso-tit").textContent = ligado ? "Acesso ligado" : "Acesso desligado";
+  $("#acesso-txt").textContent = ligado
+    ? `Porta ${E.porta}${E.config.so_tailscale ? " · só pelo Tailscale" : " · rede de casa"}. Fechar a janela desliga.`
+    : "Só entra quem tiver a senha deste PC.";
+
+  // de longe
+  const L = E.longe || {};
+  const [cl, tl] = !L.encontro ? ["", "De longe: desligado. Veja em Configurações."]
+    : !ligado ? ["", "De longe: pronto para quando ligar o acesso."]
+    : L.sinal === "pronto" ? ["ok", "De longe: pronto. O app acha este PC de qualquer lugar."]
+    : L.sinal === "erro" ? ["mal", "De longe: " + (L.erro || "sem conexão com o ponto de encontro.")]
+    : ["esp", "De longe: conectando ao ponto de encontro…"];
+  $("#longe-ponto").className = "ponto-st " + cl;
+  $("#longe-txt").textContent = tl;
+
+  // monitor virtual
+  const mi = E.monitor_inst;
+  if (mi) $("#monitor-msg").textContent = mi.msg;
+  $("#criar-monitor").disabled = !!(mi && mi.estado === "instalando");
+
+  // modos
+  const extra = (E.monitores || []).filter(m => !m.principal);
+  $("#segundo-txt").textContent = extra.length
+    ? `Pronto: ${extra[0].nome} (${extra[0].w}×${extra[0].h}) vira a tela do tablet`
+    : (mi && mi.estado === "instalando" ? "Criando a tela do tablet…" : "Toque para criar a tela do tablet (uma vez só)");
+  $("#espelho-txt").textContent = ligado
+    ? (E.sessoes.length ? "Em uso agora pelo tablet" : "Pronto: abra o app no tablet")
+    : "Mostre a mesma tela no tablet e controle o PC";
+
+  // números
+  $("#n-conectados").textContent = E.sessoes.length;
+  $("#n-conectados-rot").textContent = E.sessoes.length === 1 ? "Conectado agora" : "Conectados agora";
+  $("#n-uso").textContent = horas(E.uso_semana || 0);
+
+  // conectar
+  $("#conectar-off").hidden = ligado;
+  $("#conectar-on").hidden = !ligado;
+  if (ligado) {
+    const conv = E.convite;
+    const temTs = (end.tailscale || []).length > 0;
+    const temLocal = (end.local || []).length > 0 && !E.config.so_tailscale;
+    mudarSe($("#enderecos"), JSON.stringify([end, E.porta, E.senha, E.config.so_tailscale]), () => {
+      const l = [];
+      if (temLocal) end.local.forEach((ip, i) => l.push(linha(i ? "Wi-Fi " + (i + 1) : "Wi-Fi", ip + ":" + E.porta, i ? "outra rede deste PC" : "no app: adicionar pelo endereço")));
+      if (temTs) l.push(linha("Tailscale", end.tailscale[0] + ":" + E.porta, "de longe, com o Tailscale"));
+      l.push(linha("Senha", E.senha));
+      $("#enderecos").replaceChildren(...l);
+    });
+    const temLonge = !!(E.config.encontro);
+    if (temLonge && ultimoEncontro !== E.config.encontro && ultimoEncontro !== undefined) { viaQR = "longe"; if (!pedindoQR) setTimeout(pedirQR, 0); }
+    ultimoEncontro = E.config.encontro;
+    if (document.activeElement !== $("#encontro") && preenchido) $("#encontro").value = E.config.encontro || "";
+    $("#qr-via").hidden = [temLonge, temLocal, temTs].filter(Boolean).length < 2;
+    $('#qr-via [data-via="longe"]').hidden = !temLonge;
+    $('#qr-via [data-via="local"]').hidden = !temLocal;
+    $('#qr-via [data-via="tailscale"]').hidden = !temTs;
+    if (!viaQR || (viaQR === "tailscale" && !temTs) || (viaQR === "local" && !temLocal) || (viaQR === "longe" && !temLonge))
+      viaQR = temLonge ? "longe" : temLocal ? "local" : "tailscale";
+    const via = conv ? conv.via : viaQR;
+    $("#qr-tit").textContent = via === "longe" ? "Instalar e parear o app (Android ou iPhone)"
+      : via === "tailscale" ? "Abrir pelo Tailscale" : "Abrir no navegador (só em casa)";
+    $("#qr-txt").textContent = via === "longe"
+      ? "Aponte a câmera do tablet ou do celular: abre o Estenda, entra sem senha e depois funciona em casa e de longe. Toque em Instalar para ganhar o ícone. O QR vale 10 min para ser lido, uma vez; depois a conexão não tem limite e o aparelho fica lembrado."
+      : "Aponte a câmera do tablet: abre a página no navegador e entra sem senha. O QR vale 10 min para ser lido, uma vez; depois a conexão não tem limite e o aparelho fica lembrado.";
+    $$("#qr-via button").forEach(b => b.setAttribute("aria-pressed", b.dataset.via === viaQR));
+    if (!conv && !pedindoQR && !erroQR && (temTs || temLocal || temLonge)) pedirQR();
+    mudarSe($("#qr"), conv ? conv.url + conv.usado + conv.vencido : "vazio" + erroQR, () => {
+      const qr = $("#qr");
+      if (conv) {
+        qr.innerHTML = conv.svg;
+        if (conv.usado || conv.vencido) qr.append(el("div", "selo", conv.usado ? "Usado ✓" : "Venceu: gere outro"));
+      } else qr.replaceChildren(el("div", "qr-vazio", erroQR ? "sem QR" : "gerando…"));
+    });
+    const est = $("#qr-estado");
+    if (erroQR) est.textContent = erroQR;
+    else if (conv && !conv.usado && !conv.vencido) {
+      const s = Math.max(0, Math.round(conv.expira - Date.now() / 1000));
+      est.textContent = "QR vale por " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    } else est.textContent = conv && conv.usado ? "Já usado. Para outro aparelho, gere outro." : "";
+  }
+
+  // instalar o app pelo QR
+  const apk = ligado ? E.apk : null;
+  $("#apk-bloco").hidden = !apk;
+  $("#apk-falta").hidden = !ligado || !!apk || E.config.so_tailscale;
+  if (apk) { mudarSe($("#qr-apk"), apk.url, () => { $("#qr-apk").innerHTML = apk.svg; }); $("#apk-mb").textContent = `(${apk.mb} MB)`; }
+
+  // aparelhos
+  mudarSe($("#aparelhos"), JSON.stringify([E.sessoes, E.aparelhos, ligado]), () => {
+    const itens = [], agora = Date.now() / 1000;
+    const conectados = new Set(E.sessoes.map(s => s.aparelho).filter(Boolean));
+    E.sessoes.forEach(s => {
+      const it = el("div", "item"), txt = el("div", "txt");
+      txt.append(el("strong", null, s.nome + " · conectado"),
+        el("span", null, [s.ip, haQuanto(agora - s.desde).replace("agora", "agora mesmo"), s.fps + " fps", s.ms != null ? s.ms + " ms" : null].filter(Boolean).join(" · ")));
+      const b = el("button", "btn-peq", "Desconectar"); b.onclick = () => acao("/api/derrubar", { id: s.id }, b);
+      it.append(el("span", "ponto"), txt, b); itens.push(it);
+    });
+    E.aparelhos.forEach(a => {
+      if (conectados.has(a.id)) return;
+      const it = el("div", "item"), txt = el("div", "txt");
+      txt.append(el("strong", null, a.nome), el("span", null, "entra sem senha · visto " + haQuanto(agora - a.visto)));
+      const b = el("button", "btn-peq", "Esquecer"); b.onclick = () => acao("/api/esquecer", { id: a.id }, b);
+      const ic = el("div", "icone circ la"); ic.innerHTML = '<svg class="i"><use href="#i-monitor-celular"/></svg>';
+      it.append(ic, txt, b); itens.push(it);
+    });
+    if (!itens.length) itens.push(el("div", "vazio", ligado ? "Nenhum aparelho ainda. Abra o app Estenda no tablet." : "Nenhum aparelho ainda."));
+    $("#aparelhos").replaceChildren(...itens);
+  });
+
+  // configurações
+  $$("[data-cfg]").forEach(c => { if (document.activeElement !== c) c.checked = !!(c.dataset.cfg === "iniciar_windows" ? E.iniciar_windows : E.config[c.dataset.cfg]); });
+  $("#porta").disabled = $("#salvar-porta").disabled = ligado;
+
+  const pre = $("#registro"), texto = E.registro.join("\n");
+  if (pre.textContent !== texto) { const fim = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 20; pre.textContent = texto; if (fim) pre.scrollTop = pre.scrollHeight; }
+}
+
+atualizar();
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Gera o Estenda.exe do PC (arquivo único, sem precisar de Python) aqui no GitHub.
+# Roda sozinho quando o código do PC muda, ou em Actions -> "Programa do PC" -> Run workflow.
+# No fim, o Estenda.exe fica em Releases:
+#   github.com/SEU-USUARIO/SEU-REPOSITORIO/releases -> "Programa do PC N" -> Estenda.exe
+name: Programa do PC
+on:
+  workflow_dispatch:
+  push:
+    paths: ["*.py", "interface/**", "requisitos.txt", "icone.ico", ".github/workflows/construir.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Gerar o executável
+        shell: cmd
+        run: |
+          python -m pip install -r requisitos.txt pyinstaller
+          python -m PyInstaller --noconfirm --onefile --windowed --name Estenda --icon icone.ico --add-data "interface;interface" app.py
+      - name: Conferir que abre (modo de teste, sem janela)
+        shell: pwsh
+        run: |
+          $env:PONTE_REMOTA_SIMULAR = "1"
+          $env:PONTE_REMOTA_CONFIG = "$env:RUNNER_TEMP\estenda-teste"
+          $p = Start-Process dist\Estenda.exe -ArgumentList "--sem-janela" -PassThru
+          Start-Sleep 8
+          if ($p.HasExited) { throw "o Estenda.exe fechou sozinho (código $($p.ExitCode))" }
+          Stop-Process $p -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Estenda-PC
+          path: dist/Estenda.exe
+      - name: Publicar em Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pc-${{ github.run_number }}
+          name: Programa do PC ${{ github.run_number }}
+          body: "Baixe o Estenda.exe e abra. Não precisa instalar Python."
+          files: dist/Estenda.exe
+          make_latest: false

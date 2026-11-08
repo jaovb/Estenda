@@ -1,0 +1,16 @@
+# Estenda · ponto de encontro. Publicar: rode o publicar.bat (precisa do Node.js e de uma conta grátis da Cloudflare).
+name = "estenda-encontro"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+
+[assets]
+directory = "./publico"
+binding = "ASSETS"
+
+[[durable_objects.bindings]]
+name = "SALAS"
+class_name = "Sala"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Sala"]

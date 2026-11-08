@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Estenda · ponte de longe</title>
+</head>
+<body>
+<p>Ponte de longe do Estenda. Esta página roda sem janela e é controlada pelo app.</p>
+<script>
+"use strict";
+/* Liga o tablet (de longe) ao servidor deste PC:
+     tablet ⇄ WebRTC direto ⇄ esta página ⇄ ws://127.0.0.1/ws-ponte ⇄ servidor local
+   O ponto de encontro só serve para os dois trocarem oferta, resposta e endereços. */
+const TOKEN = new URLSearchParams(location.search).get("t") || "";
+const ICE = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] }];
+let cfg = null, sinal = null, sinalEstado = "desligado", erro = "", espera = 1000, timerSinal = 0;
+const pares = new Map();  // id do tablet no encontro -> par
+
+async function api(caminho, corpo) {
+  const op = { headers: { "X-Token": TOKEN } };
+  if (corpo) { op.method = "POST"; op.headers["Content-Type"] = "application/json"; op.body = JSON.stringify(corpo); }
+  const r = await fetch(caminho, op);
+  if (!r.ok) throw new Error("app " + r.status);
+  return r.json();
+}
+function contar() {
+  api("/api/ponte/estado", { sinal: sinalEstado, erro, pares: [...pares.values()].filter(p => p.local && p.local.readyState === 1).length }).catch(() => {});
+}
+setInterval(contar, 4000);
+
+/* ---------------------------------------------------------------- impressões digitais e fragmentos */
+function impressao(sdp) {
+  const m = /a=fingerprint:(\S+) ([0-9A-Fa-f:]+)/.exec(sdp || "");
+  return m ? m[1].toLowerCase() + " " + m[2].toUpperCase() : "";
+}
+const MAX_PARTE = 16000;
+function enviarPartes(dc, dados) {  // byte 0: bit 1 = é texto, bit 0 = ainda vem mais
+  const texto = typeof dados === "string";
+  const bytes = texto ? new TextEncoder().encode(dados) : new Uint8Array(dados);
+  let i = 0;
+  do {
+    const n = Math.min(MAX_PARTE, bytes.length - i), fim = i + n >= bytes.length;
+    const parte = new Uint8Array(n + 1);
+    parte[0] = (texto ? 2 : 0) | (fim ? 0 : 1);
+    parte.set(bytes.subarray(i, i + n), 1);
+    dc.send(parte);
+    i += n;
+  } while (i < bytes.length);
+}
+function juntarPartes(par, dados) {
+  const b = new Uint8Array(dados), flag = b[0];
+  par.partes.push(b.slice(1));
+  if (flag & 1) return null;
+  const tam = par.partes.reduce((s, p) => s + p.length, 0), tudo = new Uint8Array(tam);
+  let o = 0;
+  for (const p of par.partes) { tudo.set(p, o); o += p.length; }
+  par.partes = [];
+  return flag & 2 ? new TextDecoder().decode(tudo) : tudo.buffer;
+}
+
+/* ---------------------------------------------------------------- um tablet */
+function fecharPar(id) {
+  const p = pares.get(id);
+  if (!p) return;
+  pares.delete(id);
+  clearTimeout(p.limite);
+  try { p.dc && p.dc.close(); } catch (_) {}
+  try { p.pc.close(); } catch (_) {}
+  try { p.local && p.local.close(); } catch (_) {}
+  contar();
+}
+async function ipDoTablet(pc) {
+  try {
+    const st = await pc.getStats();
+    let par = null;
+    st.forEach(r => { if (r.type === "transport" && r.selectedCandidatePairId) par = st.get(r.selectedCandidatePairId); });
+    if (!par) st.forEach(r => { if (r.type === "candidate-pair" && r.nominated && r.state === "succeeded") par = r; });
+    const rem = par && st.get(par.remoteCandidateId);
+    return rem ? (rem.address || rem.ip || "de longe") + (rem.candidateType === "relay" ? " (retransmitido)" : "") : "de longe";
+  } catch (_) { return "de longe"; }
+}
+async function oferta(m) {
+  fecharPar(m.de);
+  const pc = new RTCPeerConnection({ iceServers: ICE });
+  const par = { pc, dc: null, local: null, fila: [], partes: [], ice: [], remoto: false };
+  pares.set(m.de, par);
+  par.limite = setTimeout(() => { if (!par.local) fecharPar(m.de); }, 30000);
+  pc.onicecandidate = e => { if (e.candidate) enviarSinal({ t: "ice", para: m.de, c: e.candidate.toJSON() }); };
+  pc.onconnectionstatechange = () => { if (["failed", "closed"].includes(pc.connectionState) && pares.get(m.de) === par) fecharPar(m.de); };
+  pc.ondatachannel = e => {
+    const dc = par.dc = e.channel;
+    dc.binaryType = "arraybuffer";
+    dc.onmessage = ev => {
+      const msg = juntarPartes(par, ev.data);
+      if (msg === null) return;
+      if (par.local && par.local.readyState === 1) par.local.send(msg); else par.fila.push(msg);
+    };
+    dc.onclose = () => { if (pares.get(m.de) === par) fecharPar(m.de); };
+    const abrir = async () => {
+      // o vínculo prova ao servidor que a senha foi usada NESTE canal (e não num canal trocado no meio)
+      const v = "p2p|" + impressao(pc.localDescription.sdp) + "|" + impressao(pc.remoteDescription.sdp);
+      const ip = await ipDoTablet(pc);
+      const ws = par.local = new WebSocket(`ws://127.0.0.1:${cfg.porta}/ws-ponte?t=${encodeURIComponent(cfg.token)}&v=${encodeURIComponent(v)}&ip=${encodeURIComponent(ip)}`);
+      ws.binaryType = "arraybuffer";
+      ws.onopen = () => { clearTimeout(par.limite); for (const x of par.fila.splice(0)) ws.send(x); contar(); };
+      ws.onmessage = ev => { if (dc.readyState === "open") enviarPartes(dc, ev.data); };
+      ws.onclose = () => { if (pares.get(m.de) === par) fecharPar(m.de); };
+    };
+    if (dc.readyState === "open") abrir(); else dc.onopen = abrir;
+  };
+  try {
+    await pc.setRemoteDescription({ type: "offer", sdp: m.sdp });
+    par.remoto = true;
+    for (const c of par.ice.splice(0)) pc.addIceCandidate(c).catch(() => {});
+    await pc.setLocalDescription(await pc.createAnswer());
+    enviarSinal({ t: "resposta", para: m.de, sdp: pc.localDescription.sdp });
+  } catch (e) {
+    fecharPar(m.de);
+  }
+}
+
+/* ---------------------------------------------------------------- ponto de encontro */
+function enviarSinal(obj) { if (sinal && sinal.readyState === 1) sinal.send(JSON.stringify(obj)); }
+function mudar(estado, texto) { if (estado !== sinalEstado || (texto || "") !== erro) { sinalEstado = estado; erro = texto || ""; contar(); } }
+function conectarSinal() {
+  clearTimeout(timerSinal);
+  if (!cfg || !cfg.ativo || sinal) return;
+  mudar("conectando");
+  const base = cfg.encontro.replace(/^http/, "ws");
+  const ws = sinal = new WebSocket(`${base}/sala/${cfg.sala}?papel=pc&k=${encodeURIComponent(cfg.chave)}`);
+  let abriu = false, ping = 0;
+  ws.onopen = () => { abriu = true; espera = 1000; mudar("pronto"); ping = setInterval(() => ws.send('{"t":"ping"}'), 25000); };
+  ws.onmessage = e => {
+    let m; try { m = JSON.parse(e.data); } catch (_) { return; }
+    if (m.t === "oferta" && typeof m.sdp === "string") oferta(m);
+    else if (m.t === "ice" && m.c) {
+      const p = pares.get(m.de);
+      if (p) p.remoto ? p.pc.addIceCandidate(m.c).catch(() => {}) : p.ice.push(m.c);
+    } else if (m.t === "fim") { const p = pares.get(m.de); if (p && !p.local) fecharPar(m.de); }
+  };
+  ws.onclose = e => {
+    clearInterval(ping);
+    if (sinal !== ws) return;
+    sinal = null;
+    if (!cfg || !cfg.ativo) return mudar("desligado");
+    mudar("erro", e.code === 4000 ? "Outro Estenda entrou nesta sala."
+      : abriu ? "Caiu a conexão com o ponto de encontro. Tentando de novo…"
+      : "Não consegui falar com o ponto de encontro. Confira o endereço e a internet.");
+    timerSinal = setTimeout(conectarSinal, espera);
+    espera = Math.min(60000, espera * 2);
+  };
+}
+function fecharTudo() {
+  clearTimeout(timerSinal);
+  if (sinal) { const s = sinal; sinal = null; try { s.close(); } catch (_) {} }
+  for (const id of [...pares.keys()]) fecharPar(id);
+}
+
+async function vigiar() {
+  try {
+    const novo = await api("/api/ponte");
+    const mudou = !cfg || novo.encontro !== cfg.encontro || novo.sala !== cfg.sala || novo.porta !== cfg.porta || novo.ativo !== cfg.ativo;
+    cfg = novo;
+    if (mudou) { fecharTudo(); espera = 1000; if (cfg.ativo) conectarSinal(); else mudar("desligado"); }
+  } catch (_) {
+    fecharTudo();  // o app fechou
+  }
+  setTimeout(vigiar, 2000);
+}
+vigiar();
+</script>
+</body>
+</html>

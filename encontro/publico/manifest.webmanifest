@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "Estenda",
+  "short_name": "Estenda",
+  "description": "Use o seu PC pelo tablet: espelhamento com toque e segundo monitor.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#1b1f24",
+  "theme_color": "#1b1f24",
+  "icons": [
+    {"src": "/icone-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/icone-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/icone-mascara.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

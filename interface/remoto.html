@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#1b1f24">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Estenda">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Estenda</title>
+<link rel="icon" href="/icone-192.png">
+<link rel="apple-touch-icon" href="/icone-apple.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<style>
+@font-face { font-family: "Space Grotesk"; src: url("/fontes/SpaceGrotesk.ttf") format("truetype"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("/fontes/JetBrainsMono.ttf") format("truetype"); font-weight: 100 800; font-display: swap; }
+:root, :root[data-theme="dark"] {
+  /* mesmas cores da Ponte KVM: grafite azulado, texto quebrado, verde-sálvia */
+  --bg: #1b1f24; --surface: #22272d; --surface-2: #2a3037; --code: #181b20;
+  --border: #323940; --border-strong: #434b54;
+  --text: #d9ddd7; --muted: #9ca39e; --faint: #6f7772;
+  --accent: #8cc7b5; --accent-ink: #172320; --accent-soft: rgba(140, 199, 181, .11); --accent-glow: rgba(140, 199, 181, .28);
+  --warn: #dfb877; --warn-soft: rgba(223, 184, 119, .09);
+  --bad: #e39f93; --bad-soft: rgba(227, 159, 147, .09);
+  --tela: #121518; --sombra: 0 10px 32px rgba(0, 0, 0, .38);
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f2eee5; --surface: #f9f6ef; --surface-2: #e9e4d8; --code: #ebe6da;
+  --border: #dcd5c5; --border-strong: #c8c0ae;
+  --text: #30353a; --muted: #676d6a; --faint: #979a93;
+  --accent: #457e6e; --accent-ink: #f8f6f0; --accent-soft: rgba(69, 126, 110, .1); --accent-glow: rgba(69, 126, 110, .25);
+  --warn: #9a6d24; --warn-soft: rgba(154, 109, 36, .09);
+  --bad: #ad5246; --bad-soft: rgba(173, 82, 70, .08);
+  --tela: #dcd6c9; --sombra: 0 10px 28px rgba(48, 53, 58, .18);
+  color-scheme: light;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overscroll-behavior: none; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 15px/1.55 "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased; transition: background .25s, color .25s;
+}
+.mono, code, kbd, input, textarea { font-family: "JetBrains Mono", ui-monospace, Consolas, "SF Mono", monospace; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg.i { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---------------------------------------------------------------- entrada */
+#landing {
+  position: fixed; inset: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: grid; place-items: center; text-align: center;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  transition: opacity .35s, transform .35s;
+}
+#landing.saindo { opacity: 0; transform: scale(.98); pointer-events: none; }
+#cursores { position: fixed; inset: 0; width: 100%; height: 100%; }
+.heroi { position: relative; width: 100%; max-width: 560px; }
+.etiqueta { font-family: "JetBrains Mono", monospace; color: var(--accent); font-size: 13px; margin-bottom: 12px; }
+#titulo {
+  font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-weight: 700; font-size: clamp(30px, 6vw, 46px); line-height: 1.12; letter-spacing: -.01em;
+  margin: 0 auto 14px; max-width: 14ch; min-height: 2.3em;
+}
+.bloco { display: inline-block; width: .52em; height: 1em; margin-left: .06em; vertical-align: -.12em; background: var(--accent); animation: piscar 1.05s steps(1) infinite; }
+.bloco.digitando { animation: none; }
+@keyframes piscar { 50% { opacity: 0; } }
+.heroi > p { color: var(--muted); font-size: 16px; max-width: 420px; margin: 0 auto 22px; }
+#tema { position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 2; border: 1px solid var(--border-strong); background: color-mix(in srgb, var(--bg) 80%, transparent); color: var(--muted); border-radius: 999px; padding: 5px 14px; font-size: 14px; }
+
+.cartao { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.login { text-align: left; max-width: 420px; margin: 0 auto; box-shadow: var(--sombra); }
+.login .pc { margin-bottom: 14px; }
+label.campo { display: block; font-size: 14px; color: var(--muted); }
+label.campo input {
+  display: block; width: 100%; margin-top: 6px; height: 48px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--code); color: var(--text); padding: 0 14px; font-size: 17px; letter-spacing: .04em;
+}
+label.campo input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+label.campo input::placeholder { color: var(--faint); }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; margin: 14px 0 18px; color: var(--text); }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+.btn-grande {
+  background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px;
+  padding: 15px 36px; font-weight: 700; font-size: 17px; transition: transform .15s, filter .15s;
+}
+.btn-grande:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.largo { width: 100%; }
+.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px; padding: 11px 22px; font-weight: 700; font-size: 15px; }
+.btn-sec { background: none; color: var(--text); border: 1px solid var(--border-strong); border-radius: 999px; padding: 10px 20px; font-weight: 600; font-size: 15px; }
+.btn-sec:hover:not(:disabled) { border-color: var(--muted); }
+.btn-perigo { background: var(--bad); color: #1d1312; border: 0; border-radius: 999px; padding: 11px 22px; font-weight: 700; font-size: 15px; }
+.link { background: none; border: 0; padding: 6px 0; color: var(--accent); font-size: 14px; margin-top: 12px; }
+.erro { color: var(--bad); font-size: 14px; margin: 12px 0 0; }
+.erro:empty { display: none; }
+.dica-pe { color: var(--faint); font-size: 13px; margin: 18px auto 0; max-width: 420px; }
+.instalar { margin: 16px auto 0; max-width: 420px; text-align: center; }
+.instalar p { color: var(--muted, var(--faint)); font-size: 14px; margin: 8px 0 0; }
+
+.status { display: inline-flex; align-items: center; gap: 9px; font-size: 14px; color: var(--muted); }
+.status .pt { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); flex: none; }
+.status.ok { color: var(--text); } .status.ok .pt { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.status.esp .pt { background: var(--warn); animation: pulsar 1.1s ease-in-out infinite; }
+.status.mal { color: var(--bad); } .status.mal .pt { background: var(--bad); }
+@keyframes pulsar { 50% { opacity: .3; } }
+
+/* ---------------------------------------------------------------- sessão */
+#sessao { position: fixed; inset: 0; overflow: hidden; }
+#tela { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; background: var(--tela); cursor: none; }
+#entrada-texto {
+  position: fixed; left: 0; bottom: 0; width: 2px; height: 2px; opacity: 0; border: 0; padding: 0; resize: none;
+  font-size: 16px; color: transparent; background: transparent; caret-color: transparent; pointer-events: none;
+}
+
+/* barra de ferramentas */
+#barra {
+  position: fixed; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 33;
+  display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border); box-shadow: var(--sombra);
+  max-width: calc(100vw - 16px); overflow-x: auto; scrollbar-width: none; transition: opacity .2s, transform .25s;
+}
+#barra::-webkit-scrollbar { display: none; }
+#barra.recolhida { opacity: 0; transform: translate(-50%, -14px); pointer-events: none; }
+#barra .ic {
+  height: 40px; min-width: 42px; padding: 0 10px; border: 1px solid transparent; background: none; border-radius: 999px;
+  color: var(--muted); display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: none; font-size: 13.5px; font-weight: 600;
+}
+#barra .ic:hover { color: var(--text); }
+#barra .ic[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+#barra .ic .rot { display: none; }
+@media (min-width: 1180px) { #barra .ic .rot { display: inline; } }
+.sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; flex: none; }
+#pilula { display: inline-flex; align-items: center; gap: 7px; padding: 0 10px 0 12px; height: 40px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted); background: none; border: 0; border-radius: 999px; flex: none; }
+#pilula .pt { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+#pilula.ok .pt { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+#pilula.esp .pt { background: var(--warn); } #pilula.mal .pt { background: var(--bad); }
+#puxador {
+  position: fixed; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 33;
+  display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border); color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 12px; opacity: .85;
+}
+#puxador .pt { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+#puxador svg.i { width: 15px; height: 15px; }
+
+/* faixa de aviso (tela bloqueada, desligamento) */
+#faixa {
+  position: fixed; top: calc(max(10px, env(safe-area-inset-top)) + 58px); left: 50%; transform: translateX(-50%); z-index: 19;
+  width: max-content; max-width: min(560px, calc(100vw - 24px)); display: flex; gap: 12px; align-items: center;
+  padding: 10px 12px 10px 16px; border-radius: 12px; font-size: 14px; box-shadow: var(--sombra);
+  background: color-mix(in srgb, var(--surface) 94%, var(--warn)); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+}
+#faixa.mal { background: color-mix(in srgb, var(--surface) 92%, var(--bad)); border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+#faixa b { color: var(--warn); } #faixa.mal b { color: var(--bad); }
+#faixa button { flex: none; padding: 7px 14px; font-size: 13.5px; }
+
+/* avisos rápidos */
+#toast {
+  position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translate(-50%, 16px); z-index: 45;
+  max-width: min(520px, calc(100vw - 24px)); padding: 10px 18px; border-radius: 16px; font-size: 14px; text-align: center;
+  background: color-mix(in srgb, var(--surface-2) 94%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-strong); box-shadow: var(--sombra); opacity: 0; pointer-events: none; transition: opacity .2s, transform .25s;
+}
+#toast.visivel { opacity: 1; transform: translate(-50%, 0); }
+body.teclado-aberto #toast { bottom: 72px; }
+
+/* teclas acima do teclado do tablet */
+#barra-teclado {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: flex; gap: 6px; align-items: center;
+  padding: 7px 10px; overflow-x: auto; scrollbar-width: none;
+  background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+}
+#barra-teclado::-webkit-scrollbar { display: none; }
+.tecla {
+  height: 42px; min-width: 46px; padding: 0 11px; border-radius: 10px; flex: none;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+  font: 500 13.5px "JetBrains Mono", ui-monospace, monospace; box-shadow: 0 1px 0 var(--border-strong); touch-action: manipulation;
+}
+.tecla:active { transform: translateY(1px); box-shadow: none; }
+.tecla.m1 { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.tecla.m2 { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+#barra-teclado .fechar { background: none; border-color: transparent; box-shadow: none; color: var(--muted); }
+.div-teclas { width: 1px; height: 26px; background: var(--border); flex: none; margin: 0 2px; }
+
+/* folhas (painéis que sobem de baixo) */
+#fundo-folha { position: fixed; inset: 0; z-index: 30; background: rgba(10, 12, 14, .28); opacity: 0; transition: opacity .2s; }
+#fundo-folha.aberto { opacity: 1; }
+.folha {
+  position: fixed; z-index: 31; left: 50%; bottom: 0; width: min(580px, 100vw); transform: translate(-50%, 104%);
+  transition: transform .3s cubic-bezier(.2, .8, .2, 1); background: var(--surface); border: 1px solid var(--border); border-bottom: 0;
+  border-radius: 20px 20px 0 0; padding: 8px 18px calc(20px + env(safe-area-inset-bottom)); max-height: 82%; overflow-y: auto;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, .35); overscroll-behavior: contain;
+}
+.folha.aberta { transform: translate(-50%, 0); }
+.alca { width: 42px; height: 4px; border-radius: 4px; background: var(--border-strong); margin: 4px auto 14px; }
+.folha h2 { font-size: 20px; margin: 0 0 2px; letter-spacing: -.01em; }
+.folha .sub { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.grupo { font-family: "JetBrains Mono", monospace; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 18px 0 8px; }
+.grade-teclas { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px; }
+.grade-teclas .tecla { width: 100%; }
+.atalhos { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.atalho {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; text-align: left; padding: 10px 12px;
+  border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); font-size: 14px;
+}
+.atalho:active { border-color: var(--accent); }
+kbd { font-size: 11.5px; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 5px; padding: 1px 6px; box-shadow: 0 1px 0 var(--border-strong); color: var(--text); white-space: nowrap; }
+.segmentos { display: flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px; width: fit-content; max-width: 100%; overflow-x: auto; }
+.segmentos button { border: 1px solid transparent; background: none; color: var(--muted); padding: 6px 16px; border-radius: 999px; font-size: 14px; white-space: nowrap; }
+.segmentos button[aria-pressed="true"] { background: var(--bg); color: var(--text); border-color: var(--border); }
+.nota { color: var(--muted); font-size: 13.5px; margin: 8px 0 0; }
+.linha-botoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+textarea.area {
+  width: 100%; min-height: 120px; border-radius: 12px; border: 1px solid var(--border); background: var(--code); color: var(--text);
+  padding: 12px; font-size: 14px; line-height: 1.5; resize: vertical;
+}
+textarea.area:focus { border-color: var(--accent); outline: none; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.estat { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted); background: var(--code); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+.energia { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.energia > button {
+  text-align: left; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.energia > button strong { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.energia > button small { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.energia > button:hover { border-color: var(--border-strong); }
+.confirmar { border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent); background: var(--bad-soft); border-radius: 14px; padding: 14px 16px; margin-top: 12px; }
+.confirmar p { margin: 0 0 10px; font-size: 14.5px; }
+table.gestos { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.gestos td { padding: 9px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.gestos td:first-child { color: var(--muted); width: 44%; padding-right: 12px; }
+
+/* cobertura (conectando, reconectando, encerrada) */
+#cobertura { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 20px; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+#cobertura .cartao { max-width: 420px; width: 100%; text-align: center; box-shadow: var(--sombra); }
+#cobertura h2 { font-size: 21px; margin: 10px 0 6px; }
+#cobertura p { color: var(--muted); margin: 0 0 6px; }
+#cobertura .linha-botoes { justify-content: center; margin-top: 16px; }
+
+@media (max-width: 520px) { .energia { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-teclado" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/></symbol>
+  <symbol id="i-touchpad" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="M4 15h16M12 15v5.5"/></symbol>
+  <symbol id="i-toque" viewBox="0 0 24 24"><path d="M9 11.5V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 10a1.5 1.5 0 0 1 3 0v1.5"/><path d="M15 11a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3l-2.3-3a1.6 1.6 0 0 1 2.4-2.1L9 15.4"/></symbol>
+  <symbol id="i-teclas" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><path d="M15 17h4M17 15v4"/></symbol>
+  <symbol id="i-copiar" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-tela" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-energia" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 7.2a8 8 0 1 0 11.4 0"/></symbol>
+  <symbol id="i-ajuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .9-1 1.6v.4M12 17h.01"/></symbol>
+  <symbol id="i-cheia" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></symbol>
+  <symbol id="i-sair-cheia" viewBox="0 0 24 24"><path d="M9 4v4a1 1 0 0 1-1 1H4M20 9h-4a1 1 0 0 1-1-1V4M15 20v-4a1 1 0 0 1 1-1h4M4 15h4a1 1 0 0 1 1 1v4"/></symbol>
+  <symbol id="i-sair" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"/></symbol>
+  <symbol id="i-cima" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></symbol>
+  <symbol id="i-baixo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-cadeado" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-lua" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+  <symbol id="i-reiniciar" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4.5h-4.5"/></symbol>
+</svg>
+
+<!-- ============================================================ entrada -->
+<section id="landing">
+  <canvas id="cursores" aria-hidden="true"></canvas>
+  <button id="tema">☀ Claro</button>
+  <div class="heroi">
+    <div class="etiqueta">⇄ Ponte Remota</div>
+    <h1 id="titulo" aria-label="Seu PC, de qualquer lugar."><span id="digitado" aria-hidden="true"></span><span class="bloco" aria-hidden="true"></span></h1>
+    <p>Toque, arraste e digite como se estivesse na frente do computador.</p>
+    <div class="cartao login" id="login">
+      <div class="pc"><span class="status esp" id="pc-status"><span class="pt"></span><span id="pc-texto">Procurando o PC…</span></span></div>
+      <form id="form-senha" hidden autocomplete="off">
+        <label class="campo">Senha mostrada no PC
+          <input id="senha" type="password" autocapitalize="off" autocorrect="off" autocomplete="current-password" spellcheck="false" placeholder="abcd-efgh-jkmn" enterkeyhint="go">
+        </label>
+        <label class="check"><input type="checkbox" id="lembrar" checked>Lembrar este aparelho (não pede a senha de novo)</label>
+        <button class="btn-grande largo" type="submit" id="entrar">Entrar</button>
+      </form>
+      <div id="de-volta" hidden>
+        <button class="btn-grande largo" id="entrar-de-novo">Entrar de novo</button>
+        <button class="link" id="esquecer">Esquecer este aparelho</button>
+      </div>
+      <p class="erro" id="erro"></p>
+    </div>
+    <p class="dica-pe" id="dica-pe">No PC, abra o Estenda e ligue o acesso. A senha e o QR aparecem lá.</p>
+    <div class="instalar" id="instalar" hidden>
+      <button class="btn" id="instalar-btn">Instalar o app Estenda</button>
+      <p id="instalar-ios" hidden>Para ter como app no iPhone/iPad: toque em <b>Compartilhar</b> (o quadrado com a seta) e em <b>Adicionar à Tela de Início</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ sessão -->
+<section id="sessao" hidden>
+  <canvas id="tela"></canvas>
+  <textarea id="entrada-texto" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Teclado"></textarea>
+
+  <nav id="barra" aria-label="Ferramentas">
+    <button id="pilula" title="Atraso e quadros por segundo"><span class="pt"></span><span id="pilula-txt">—</span></button>
+    <span class="sep"></span>
+    <button class="ic" data-acao="teclado" aria-pressed="false" title="Teclado"><svg class="i"><use href="#i-teclado"/></svg><span class="rot">Teclado</span></button>
+    <button class="ic" data-acao="modo" title="Modo do toque"><svg class="i"><use href="#i-touchpad"/></svg><span class="rot">Touchpad</span></button>
+    <button class="ic" data-acao="teclas" aria-pressed="false" title="Teclas e atalhos"><svg class="i"><use href="#i-teclas"/></svg><span class="rot">Teclas</span></button>
+    <button class="ic" data-acao="copiar" aria-pressed="false" title="Copiar e colar"><svg class="i"><use href="#i-copiar"/></svg><span class="rot">Copiar</span></button>
+    <button class="ic" data-acao="tela" aria-pressed="false" title="Tela e qualidade"><svg class="i"><use href="#i-tela"/></svg><span class="rot">Tela</span></button>
+    <button class="ic" data-acao="energia" aria-pressed="false" title="Energia"><svg class="i"><use href="#i-energia"/></svg><span class="rot">Energia</span></button>
+    <button class="ic" data-acao="ajuda" aria-pressed="false" title="Gestos"><svg class="i"><use href="#i-ajuda"/></svg><span class="rot">Gestos</span></button>
+    <span class="sep"></span>
+    <button class="ic" data-acao="cheia" title="Tela cheia"><svg class="i"><use href="#i-cheia"/></svg></button>
+    <button class="ic" data-acao="sair" title="Sair"><svg class="i"><use href="#i-sair"/></svg></button>
+    <button class="ic" data-acao="recolher" title="Esconder a barra"><svg class="i"><use href="#i-cima"/></svg></button>
+  </nav>
+  <button id="puxador" hidden aria-label="Mostrar a barra"><span class="pt"></span><span id="puxador-txt">ponte</span><svg class="i"><use href="#i-baixo"/></svg></button>
+  <div id="faixa" hidden></div>
+  <div id="barra-teclado" hidden></div>
+
+  <div id="fundo-folha" hidden></div>
+
+  <!-- teclas -->
+  <section class="folha" id="f-teclas" aria-label="Teclas e atalhos">
+    <div class="alca"></div>
+    <h2>Teclas e atalhos</h2>
+    <p class="sub">Ctrl, Alt, Shift e Win: um toque vale para a próxima tecla; dois toques deixam apertada.</p>
+    <div class="grupo">Modificadores</div>
+    <div class="grade-teclas" id="mods-folha"></div>
+    <div class="grupo">Navegação</div>
+    <div class="grade-teclas" id="nav-folha"></div>
+    <div class="grupo">Funções</div>
+    <div class="grade-teclas" id="f-folha"></div>
+    <div class="grupo">Atalhos do Windows</div>
+    <div class="atalhos" id="atalhos"></div>
+    <p class="nota">Ctrl+Alt+Del não passa por nenhum programa de acesso remoto; para o Gerenciador de Tarefas, use Ctrl+Shift+Esc.</p>
+  </section>
+
+  <!-- copiar e colar -->
+  <section class="folha" id="f-copiar" aria-label="Copiar e colar">
+    <div class="alca"></div>
+    <h2>Copiar e colar</h2>
+    <p class="sub">Leve texto entre o tablet e a área de transferência do PC.</p>
+    <textarea class="area" id="area" placeholder="Cole aqui um texto para mandar ao PC, ou toque em Pegar do PC."></textarea>
+    <div class="linha-botoes">
+      <button class="btn-sec" id="clip-pegar">Pegar do PC</button>
+      <button class="btn-sec" id="clip-enviar">Enviar ao PC</button>
+      <button class="btn" id="clip-colar">Enviar e colar</button>
+    </div>
+    <button class="link" id="clip-copiar">Copiar no tablet</button>
+    <p class="nota" id="clip-status"></p>
+  </section>
+
+  <!-- tela e qualidade -->
+  <section class="folha" id="f-tela" aria-label="Tela e qualidade">
+    <div class="alca"></div>
+    <h2>Tela e qualidade</h2>
+    <div id="bloco-monitores">
+      <div class="grupo">Monitor</div>
+      <div class="segmentos" id="monitores"></div>
+    </div>
+    <div class="grupo">Qualidade</div>
+    <div class="segmentos" id="qualidade">
+      <button data-q="nitida">Nítida</button><button data-q="equilibrada">Equilibrada</button><button data-q="leve">Leve</button>
+    </div>
+    <p class="nota" id="qualidade-nota"></p>
+    <div class="grupo">Fluidez</div>
+    <div class="segmentos" id="fluidez"><button data-fps="15">15 fps</button><button data-fps="30">30 fps</button><button data-fps="60">60 fps</button></div>
+    <div class="grupo">Velocidade do touchpad</div>
+    <input type="range" id="velocidade" min="0.5" max="2.5" step="0.1">
+    <div class="linha-botoes">
+      <button class="btn-sec" id="ajustar">Ajustar à tela</button>
+      <button class="btn-sec" id="tema2">☀ Claro</button>
+    </div>
+    <div class="estat" id="estat">—</div>
+  </section>
+
+  <!-- energia -->
+  <section class="folha" id="f-energia" aria-label="Energia">
+    <div class="alca"></div>
+    <h2>Energia do PC</h2>
+    <p class="sub" id="energia-sub">Ligar o PC de longe ainda não dá: pense antes de desligar.</p>
+    <div class="energia" id="energia-botoes">
+      <button data-energia="bloquear"><strong><svg class="i"><use href="#i-cadeado"/></svg>Bloquear</strong><small>Volta à tela de senha. Daqui você perde o acesso até alguém entrar no PC.</small></button>
+      <button data-energia="suspender"><strong><svg class="i"><use href="#i-lua"/></svg>Suspender</strong><small>Gasta pouca energia, mas daqui não dá para acordar o PC.</small></button>
+      <button data-energia="reiniciar"><strong><svg class="i"><use href="#i-reiniciar"/></svg>Reiniciar</strong><small>Desliga e liga de novo. O acesso volta se o app iniciar com o Windows e o PC não pedir senha.</small></button>
+      <button data-energia="desligar"><strong><svg class="i"><use href="#i-energia"/></svg>Desligar</strong><small>Desliga de vez. Para ligar de novo, só no PC.</small></button>
+    </div>
+    <div class="confirmar" id="confirmar" hidden>
+      <p id="confirmar-txt"></p>
+      <div class="linha-botoes" style="margin-top:0">
+        <button class="btn-perigo" id="confirmar-sim">Sim</button>
+        <button class="btn-sec" id="confirmar-nao">Cancelar</button>
+      </div>
+    </div>
+    <p class="nota" id="energia-off" hidden>Desligar e reiniciar pelo tablet estão desativados no PC (Ponte Remota → Opções).</p>
+  </section>
+
+  <!-- gestos -->
+  <section class="folha" id="f-ajuda" aria-label="Gestos">
+    <div class="alca"></div>
+    <h2>Gestos</h2>
+    <div class="segmentos" id="ajuda-modo"><button data-m="touchpad">Touchpad</button><button data-m="toque">Toque direto</button></div>
+    <table class="gestos" id="gestos-touchpad">
+      <tr><td>Mover o cursor</td><td>Arraste um dedo</td></tr>
+      <tr><td>Clicar</td><td>Toque com um dedo (dois toques = clique duplo)</td></tr>
+      <tr><td>Clique direito</td><td>Toque com dois dedos</td></tr>
+      <tr><td>Arrastar e selecionar</td><td>Segure um dedo até vibrar e arraste</td></tr>
+      <tr><td>Rolar</td><td>Arraste dois dedos</td></tr>
+      <tr><td>Zoom</td><td>Pinça com dois dedos</td></tr>
+      <tr><td>Teclado</td><td>Toque com três dedos</td></tr>
+    </table>
+    <table class="gestos" id="gestos-toque" hidden>
+      <tr><td>Clicar</td><td>Toque onde quer clicar</td></tr>
+      <tr><td>Clique direito</td><td>Segure até vibrar</td></tr>
+      <tr><td>Arrastar e selecionar</td><td>Arraste um dedo</td></tr>
+      <tr><td>Rolar</td><td>Arraste dois dedos</td></tr>
+      <tr><td>Zoom</td><td>Pinça com dois dedos</td></tr>
+      <tr><td>Teclado</td><td>Toque com três dedos</td></tr>
+    </table>
+    <p class="nota">Mouse e teclado ligados no tablet (Bluetooth ou USB) funcionam direto. Alguns atalhos do próprio Chrome, como Ctrl+W e Ctrl+T, não chegam ao PC: use Teclas.</p>
+  </section>
+
+  <div id="cobertura" hidden>
+    <div class="cartao">
+      <span class="status esp" id="cob-status"><span class="pt"></span><span id="cob-pc"></span></span>
+      <h2 id="cob-tit">Conectando…</h2>
+      <p id="cob-txt"></p>
+      <div class="linha-botoes" id="cob-botoes"></div>
+    </div>
+  </div>
+</section>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const PREF = "pr." + location.host + ".";
+function guardar(k, v) { try { localStorage.setItem(PREF + k, typeof v === "string" ? v : JSON.stringify(v)); } catch (e) {} }
+function ler(k, padrao = null) { try { const v = localStorage.getItem(PREF + k); return v === null ? padrao : v; } catch (e) { return padrao; } }
+function lerJSON(k) { try { return JSON.parse(ler(k)); } catch (e) { return null; } }
+function apagar(k) { try { localStorage.removeItem(PREF + k); } catch (e) {} }
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const utf8 = s => new TextEncoder().encode(s);
+const deBase64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const normalizar = s => String(s).replace(/\s+/g, "").replace(/-/g, "").toLowerCase();
+const agora = () => performance.now();
+function vibrar(ms = 14) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
+
+/* ---------------------------------------------------------------- SHA-256 e HMAC
+   Em http:// o navegador não libera o crypto.subtle, então vai em JavaScript puro.
+   A senha nunca viaja: o PC manda um número aleatório e a página devolve um HMAC dele. */
+const SHA = (() => {
+  const K = new Uint32Array([
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]);
+  function hash(bytes) {
+    const n = bytes.length, total = ((n + 9 + 63) >> 6) << 6;
+    const m = new Uint8Array(total);
+    m.set(bytes); m[n] = 0x80;
+    const dv = new DataView(m.buffer);
+    dv.setUint32(total - 8, Math.floor(n / 0x20000000));
+    dv.setUint32(total - 4, (n * 8) >>> 0);
+    const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+    const W = new Uint32Array(64);
+    for (let o = 0; o < total; o += 64) {
+      for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+      for (let i = 16; i < 64; i++) {
+        const a = W[i - 15], b = W[i - 2];
+        W[i] = W[i - 16] + ((a >>> 7 | a << 25) ^ (a >>> 18 | a << 14) ^ (a >>> 3)) + W[i - 7]
+             + ((b >>> 17 | b << 15) ^ (b >>> 19 | b << 13) ^ (b >>> 10));
+      }
+      let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (let i = 0; i < 64; i++) {
+        const t1 = (h + ((e >>> 6 | e << 26) ^ (e >>> 11 | e << 21) ^ (e >>> 25 | e << 7)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+        const t2 = (((a >>> 2 | a << 30) ^ (a >>> 13 | a << 19) ^ (a >>> 22 | a << 10)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] += a; H[1] += b; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
+    }
+    const out = new Uint8Array(32), odv = new DataView(out.buffer);
+    for (let i = 0; i < 8; i++) odv.setUint32(i * 4, H[i]);
+    return out;
+  }
+  function hmac(chave, msg) {
+    if (chave.length > 64) chave = hash(chave);
+    const k = new Uint8Array(64); k.set(chave);
+    const dentro = new Uint8Array(64 + msg.length), fora = new Uint8Array(96);
+    for (let i = 0; i < 64; i++) { dentro[i] = k[i] ^ 0x36; fora[i] = k[i] ^ 0x5c; }
+    dentro.set(msg, 64);
+    fora.set(hash(dentro), 64);
+    return hash(fora);
+  }
+  const hex = b => Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
+  return { hash, hmac, hex };
+})();
+
+/* ---------------------------------------------------------------- estado */
+const S = {
+  pc: "", via: "", naSessao: false, monitores: [], monitor: 0, energia: true,
+  modo: ler("modo", "toque"), qualidade: ler("qualidade", "equilibrada"), fps: +ler("fps", "30"),
+  velocidade: +ler("velocidade", "1.2"),
+  fbW: 0, fbH: 0, cur: { x: 0, y: 0, f: "seta", v: false }, curLocalAte: 0,
+  rtt: null, qps: 0, kbps: 0, ultimoQuadro: 0,
+};
+
+function nomeAparelho() {
+  const ua = navigator.userAgent;
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iPad";
+  if (/iPhone/.test(ua)) return "iPhone";
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? "Celular Android" : "Tablet Android";
+  if (/Windows/.test(ua)) return "Navegador no Windows";
+  if (/Mac/.test(ua)) return "Mac";
+  return "Navegador";
+}
+
+/* ---------------------------------------------------------------- tema */
+function aplicarTema(t) {
+  document.documentElement.dataset.theme = t;
+  const rot = t === "dark" ? "☀ Claro" : "☾ Escuro";
+  $("#tema").textContent = rot; $("#tema2").textContent = rot;
+  $('meta[name="theme-color"]').content = t === "dark" ? "#1b1f24" : "#f2eee5";
+  if (window.Cursores) Cursores.lerCor();
+  if (window.Tela) Tela.pedir();
+}
+function trocarTema() {
+  const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  aplicarTema(t); guardar("tema", t);
+}
+aplicarTema(ler("tema") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+$("#tema").onclick = trocarTema;
+$("#tema2").onclick = trocarTema;
+
+/* ---------------------------------------------------------------- avisos rápidos */
+let toastTimer = 0;
+function aviso(texto, ms = 2600) {
+  const t = $("#toast");
+  t.textContent = texto; t.classList.add("visivel");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("visivel"), ms);
+}
+
+/* ---------------------------------------------------------------- abertura (a mesma da Ponte KVM)
+   Cursores que andam pela tela e batem uns nos outros, nas bordas, no texto e no seu dedo. */
+const Cursores = (() => {
+  const cv = $("#cursores"), ctx = cv.getContext("2d");
+  const heroi = $(".heroi");
+  const SETA = new Path2D("M1 1v15.5l4.2-4 2.9 6.6 2.6-1.1-2.9-6.5H13.5Z");
+  let W = 0, H = 0, dpr = 1, lista = [], cor = "#8cc7b5", contorno = "#1b1f24", rodando = false, antes = 0;
+  const ponteiro = { x: -999, y: -999, vx: 0, vy: 0, r: 26, t: 0 };
+  function lerCor() {
+    const cs = getComputedStyle(document.documentElement);
+    cor = cs.getPropertyValue("--accent").trim() || cor;
+    contorno = cs.getPropertyValue("--bg").trim() || contorno;
+  }
+  function medir() { dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; }
+  function caixaTexto() { const r = heroi.getBoundingClientRect(), m = 10; return { x0: r.left - m, y0: r.top - m, x1: r.right + m, y1: r.bottom + m }; }
+  function criar() {
+    medir();
+    const n = Math.round(Math.min(22, Math.max(8, W * H / 42000)));
+    const caixa = caixaTexto();
+    lista = [];
+    for (let i = 0; i < n * 30 && lista.length < n; i++) {
+      const s = 17 + Math.random() * 15, r = s * 0.42;
+      const x = r + Math.random() * (W - 2 * r), y = r + Math.random() * (H - 2 * r);
+      const dentro = x > caixa.x0 - r && x < caixa.x1 + r && y > caixa.y0 - r && y < caixa.y1 + r;
+      if (dentro || lista.some(o => Math.hypot(o.x - x, o.y - y) < o.r + r + 4)) continue;
+      const vel = 28 + Math.random() * 34, dir = Math.random() * Math.PI * 2;
+      lista.push({ x, y, s, r, m: s * s, vx: Math.cos(dir) * vel, vy: Math.sin(dir) * vel,
+        base: -0.25 + Math.random() * 0.35, ang: 0, giro: 0, alfa: 0.35 + Math.random() * 0.4, batida: 0 });
+    }
+    lista.forEach(o => o.ang = o.base);
+  }
+  function bater(o, nx, ny, forca) { o.batida = 1; o.giro += (nx * o.vy - ny * o.vx) * 0.012 * forca; }
+  function passo(dt) {
+    const caixa = caixaTexto();
+    for (const o of lista) {
+      o.x += o.vx * dt; o.y += o.vy * dt;
+      if (o.x < o.r) { o.x = o.r; if (o.vx < 0) { o.vx = -o.vx; bater(o, 1, 0, 1); } }
+      if (o.x > W - o.r) { o.x = W - o.r; if (o.vx > 0) { o.vx = -o.vx; bater(o, -1, 0, 1); } }
+      if (o.y < o.r) { o.y = o.r; if (o.vy < 0) { o.vy = -o.vy; bater(o, 0, 1, 1); } }
+      if (o.y > H - o.r) { o.y = H - o.r; if (o.vy > 0) { o.vy = -o.vy; bater(o, 0, -1, 1); } }
+      const cx = Math.max(caixa.x0, Math.min(o.x, caixa.x1)), cy = Math.max(caixa.y0, Math.min(o.y, caixa.y1));
+      let dx = o.x - cx, dy = o.y - cy, d = Math.hypot(dx, dy);
+      if (d < o.r) {
+        if (d === 0) {
+          const lados = [o.x - caixa.x0, caixa.x1 - o.x, o.y - caixa.y0, caixa.y1 - o.y];
+          const i = lados.indexOf(Math.min(...lados));
+          [dx, dy] = [[-1, 0], [1, 0], [0, -1], [0, 1]][i]; d = 1;
+          o.x += dx * (lados[i] + o.r); o.y += dy * (lados[i] + o.r);
+        } else { o.x += dx / d * (o.r - d); o.y += dy / d * (o.r - d); }
+        const nx = dx / d, ny = dy / d, vn = o.vx * nx + o.vy * ny;
+        if (vn < 0) { o.vx -= 2 * vn * nx; o.vy -= 2 * vn * ny; bater(o, nx, ny, 1); }
+      }
+      const px = o.x - ponteiro.x, py = o.y - ponteiro.y, pd = Math.hypot(px, py), lim = o.r + ponteiro.r;
+      if (pd < lim && pd > 0) {
+        const nx = px / pd, ny = py / pd;
+        o.x += nx * (lim - pd); o.y += ny * (lim - pd);
+        const vn = (o.vx - ponteiro.vx) * nx + (o.vy - ponteiro.vy) * ny;
+        if (vn < 0) { o.vx -= 2 * vn * nx; o.vy -= 2 * vn * ny; bater(o, nx, ny, 1.5); }
+      }
+    }
+    for (let i = 0; i < lista.length; i++) {
+      for (let j = i + 1; j < lista.length; j++) {
+        const a = lista[i], b = lista[j];
+        const dx = a.x - b.x, dy = a.y - b.y, d = Math.hypot(dx, dy), lim = a.r + b.r;
+        if (d >= lim || d === 0) continue;
+        const nx = dx / d, ny = dy / d, sobra = lim - d, soma = a.m + b.m;
+        a.x += nx * sobra * b.m / soma; a.y += ny * sobra * b.m / soma;
+        b.x -= nx * sobra * a.m / soma; b.y -= ny * sobra * a.m / soma;
+        const vn = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+        if (vn >= 0) continue;
+        const imp = -2 * vn / (1 / a.m + 1 / b.m);
+        a.vx += imp / a.m * nx; a.vy += imp / a.m * ny;
+        b.vx -= imp / b.m * nx; b.vy -= imp / b.m * ny;
+        bater(a, nx, ny, 1); bater(b, -nx, -ny, 1);
+      }
+    }
+    for (const o of lista) {
+      const v = Math.hypot(o.vx, o.vy), alvo = Math.max(24, Math.min(v, 120));
+      const k = v > 0 ? 1 + (alvo / v - 1) * Math.min(1, dt * 2) : 1;
+      o.vx *= k; o.vy *= k;
+      o.giro += (o.base - o.ang) * 3 * dt;
+      o.giro *= Math.pow(0.12, dt);
+      o.ang += o.giro * dt * 6;
+      o.batida = Math.max(0, o.batida - dt * 2.5);
+    }
+    ponteiro.vx *= Math.pow(0.02, dt); ponteiro.vy *= Math.pow(0.02, dt);
+  }
+  function desenhar() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = cor; ctx.strokeStyle = contorno; ctx.lineJoin = "round";
+    for (const o of lista) {
+      const esc = o.s / 20 * (1 + o.batida * 0.12);
+      ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(o.ang); ctx.scale(esc, esc); ctx.translate(-6, -10);
+      ctx.globalAlpha = Math.min(1, o.alfa + o.batida * 0.35);
+      ctx.lineWidth = 1.4 / esc * 0.9;
+      ctx.stroke(SETA); ctx.fill(SETA);
+      ctx.restore();
+    }
+  }
+  function quadro(t) {
+    if (!rodando) return;
+    const dt = Math.min(0.05, (t - antes) / 1000 || 0);
+    antes = t;
+    for (let k = 0; k < 2; k++) passo(dt / 2);
+    desenhar();
+    requestAnimationFrame(quadro);
+  }
+  addEventListener("resize", () => {
+    if (!rodando) return;
+    medir();
+    for (const o of lista) { o.x = Math.min(Math.max(o.x, o.r), W - o.r); o.y = Math.min(Math.max(o.y, o.r), H - o.r); }
+  });
+  const mexer = e => {
+    const t = agora(), dt = Math.max(0.008, (t - ponteiro.t) / 1000);
+    if (ponteiro.t && dt < 0.2) {
+      ponteiro.vx = clamp((e.clientX - ponteiro.x) / dt, -900, 900);
+      ponteiro.vy = clamp((e.clientY - ponteiro.y) / dt, -900, 900);
+    }
+    ponteiro.x = e.clientX; ponteiro.y = e.clientY; ponteiro.t = t;
+  };
+  $("#landing").addEventListener("pointermove", mexer);
+  $("#landing").addEventListener("pointerdown", mexer);
+  $("#landing").addEventListener("pointerleave", () => { ponteiro.x = ponteiro.y = -999; });
+  $("#landing").addEventListener("pointerup", e => { if (e.pointerType !== "mouse") ponteiro.x = ponteiro.y = -999; });
+  return {
+    lerCor,
+    iniciar() { if (rodando) return; if (!lista.length) criar(); else medir(); lerCor(); rodando = true; antes = agora(); requestAnimationFrame(quadro); },
+    parar() { rodando = false; },
+  };
+})();
+window.Cursores = Cursores;
+Cursores.iniciar();
+
+/* Título digitado como por uma pessoa: ritmo irregular, pausa nos pontos e um erro corrigido. */
+(function digitar() {
+  const alvo = $("#digitado"), bloco = $("#titulo .bloco");
+  const roteiro = [["d", "Seu PC, de qualqe"], ["p", 380], ["a", 1], ["p", 150], ["d", "uer lugar."]];
+  const espera = ms => new Promise(r => setTimeout(r, ms));
+  const tempoTecla = c => {
+    let t = 55 + Math.random() * 85;
+    if (c === " ") t += 40;
+    if (".,".includes(c)) t += 160;
+    if (Math.random() < 0.06) t += 180 + Math.random() * 200;
+    return t;
+  };
+  (async () => {
+    await espera(650);
+    bloco.classList.add("digitando");
+    let anterior = "";
+    for (const [tipo, v] of roteiro) {
+      if (tipo === "p") { bloco.classList.remove("digitando"); await espera(v); bloco.classList.add("digitando"); }
+      else if (tipo === "a") { for (let i = 0; i < v; i++) { alvo.textContent = alvo.textContent.slice(0, -1); await espera(95 + Math.random() * 40); } }
+      else for (const c of v) { await espera(tempoTecla(anterior)); alvo.textContent += c; anterior = c; }
+    }
+    bloco.classList.remove("digitando");
+  })();
+})();
+
+/* ---------------------------------------------------------------- cartão de entrada */
+const Login = {
+  estado(e) {
+    const st = $("#pc-status"), txt = $("#pc-texto");
+    const pc = S.pc || "PC";
+    const conf = {
+      procurando: ["esp", "Procurando o PC…"],
+      "sem-pc": ["mal", ({
+        "sem-encontro": "Sem internet, ou o ponto de encontro não respondeu.",
+        "sem-caminho": "Achei o PC, mas a rede não deixou um caminho direto. Tente outra rede (Wi-Fi ou dados).",
+        "sem-webrtc": "Este navegador não tem WebRTC. Use o Chrome ou o Safari atualizados.",
+      })[C.motivo] || (SALA ? "O PC não respondeu. Ele está ligado, com o Estenda aberto e o acesso ligado?"
+                            : "Não encontrei o PC. O acesso está ligado no Ponte Remota?")],
+      senha: ["ok", pc + " · pronto"],
+      entrando: ["esp", "Entrando no " + pc + "…"],
+      saiu: ["ok", pc + " · você saiu"],
+    }[e] || ["", ""];
+    st.className = "status " + conf[0];
+    txt.textContent = conf[1];
+    $("#form-senha").hidden = e !== "senha";
+    $("#de-volta").hidden = e !== "saiu";
+    $("#esquecer").hidden = !lerJSON("aparelho");
+    $("#dica-pe").hidden = e === "saiu" || e === "entrando";
+    if (e !== "senha" && e !== "saiu") Login.erro("");
+  },
+  erro(t) { $("#erro").textContent = t; },
+};
+
+/* ---------------------------------------------------------------- conexão */
+const C = { ws: null, nonce: null, nonceUsado: true, senha: null, lembrar: true, convite: null, sair: false,
+            tchau: null, negado: false, tentativas: 0, timer: 0, ativo: false, modo: null };
+(() => {  // convite do QR: vem depois do # (não vai para o servidor no pedido da página)
+  const m = location.hash.match(/[#&]c=([A-Za-z0-9_-]+)/);
+  const sala = location.hash.match(/[#&]s=([A-Za-z0-9_-]{16,64})/);
+  if (sala) { try { localStorage.setItem("estenda.sala", sala[1]); } catch (_) {} }
+  if (m) C.convite = m[1];
+  if (m || sala) history.replaceState(null, "", location.pathname + location.search);
+})();
+
+/* ---------------------------------------------------------------- de longe: canal WebRTC direto
+   Aberta pelo ponto de encontro (https://…workers.dev), a página não fala com o PC por WebSocket:
+   o encontro só apresenta os dois, e a conversa vai direto (WebRTC, criptografado de ponta a ponta).
+   O canal imita um WebSocket para o resto da página não precisar saber. */
+/* ---------------------------------------------------------------- virar app (https do ponto de encontro) */
+(() => {
+  const instalado = matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches || navigator.standalone;
+  if (location.protocol !== "https:" || !("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+  if (instalado) return;
+  let pedido = null;
+  addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedido = e; $("#instalar").hidden = false; $("#instalar-btn").hidden = false; });
+  addEventListener("appinstalled", () => { $("#instalar").hidden = true; });
+  $("#instalar-btn").onclick = async () => { if (!pedido) return; pedido.prompt(); await pedido.userChoice.catch(() => {}); pedido = null; $("#instalar").hidden = true; };
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+    $("#instalar").hidden = false; $("#instalar-btn").hidden = true; $("#instalar-ios").hidden = false;
+  }
+})();
+
+const SALA = (() => { try { return localStorage.getItem("estenda.sala"); } catch (_) { return null; } })();
+const ICE = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] }];
+function impressao(sdp) {
+  const m = /a=fingerprint:(\S+) ([0-9A-Fa-f:]+)/.exec(sdp || "");
+  return m ? m[1].toLowerCase() + " " + m[2].toUpperCase() : "";
+}
+class CanalP2P {
+  constructor(sala) {
+    this.readyState = 0; this.binaryType = "arraybuffer"; this.onmessage = null; this.onclose = null;
+    this.motivo = ""; this.vinculo = null; this.partes = []; this.ice = []; this.remoto = false; this.ofertou = false;
+    if (!window.RTCPeerConnection) { this.motivo = "sem-webrtc"; setTimeout(() => this.close(), 0); return; }
+    this.pc = new RTCPeerConnection({ iceServers: ICE });
+    this.dc = this.pc.createDataChannel("ponte", { ordered: true });
+    this.dc.binaryType = "arraybuffer";
+    this.pc.onicecandidate = e => { if (e.candidate) this.sinalizar({ t: "ice", c: e.candidate.toJSON() }); };
+    this.pc.onconnectionstatechange = () => {
+      if (this.pc.connectionState === "failed") { this.motivo = this.motivo || "sem-caminho"; this.close(); }
+    };
+    this.dc.onopen = () => {
+      this.vinculo = utf8("p2p|" + impressao(this.pc.remoteDescription.sdp) + "|" + impressao(this.pc.localDescription.sdp));
+      this.readyState = 1; clearTimeout(this.limite);
+      try { this.sinal.close(); } catch (_) {}  // o encontro não é mais necessário
+    };
+    this.dc.onmessage = e => this.receber(e.data);
+    this.dc.onclose = () => this.close();
+    this.sinal = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/sala/" + sala + "?papel=tab");
+    this.sinal.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } this.doEncontro(m); };
+    this.sinal.onclose = () => { if (this.readyState === 0) { this.motivo = this.motivo || "sem-encontro"; this.close(); } };
+    this.limite = setTimeout(() => { this.motivo = this.motivo || (this.remoto ? "sem-caminho" : "sem-pc"); this.close(); }, 25000);
+  }
+  sinalizar(obj) { if (this.sinal && this.sinal.readyState === 1) this.sinal.send(JSON.stringify(obj)); }
+  async doEncontro(m) {
+    try {
+      if (m.t === "pc") {
+        if (m.on && !this.ofertou) {
+          this.ofertou = true;
+          await this.pc.setLocalDescription(await this.pc.createOffer());
+          this.sinalizar({ t: "oferta", sdp: this.pc.localDescription.sdp });
+        } else if (!m.on && this.readyState === 0) { this.motivo = "sem-pc"; this.close(); }
+      } else if (m.t === "resposta") {
+        await this.pc.setRemoteDescription({ type: "answer", sdp: m.sdp });
+        this.remoto = true;
+        for (const c of this.ice.splice(0)) this.pc.addIceCandidate(c).catch(() => {});
+      } else if (m.t === "ice" && m.c) {
+        if (this.remoto) this.pc.addIceCandidate(m.c).catch(() => {}); else this.ice.push(m.c);
+      }
+    } catch (e) { this.motivo = "sem-caminho"; this.close(); }
+  }
+  send(dados) {  // em pedaços: byte 0 tem bit 1 = texto e bit 0 = ainda vem mais
+    if (this.readyState !== 1) return;
+    const texto = typeof dados === "string";
+    const bytes = texto ? new TextEncoder().encode(dados) : new Uint8Array(dados);
+    let i = 0;
+    do {
+      const n = Math.min(16000, bytes.length - i), fim = i + n >= bytes.length;
+      const parte = new Uint8Array(n + 1);
+      parte[0] = (texto ? 2 : 0) | (fim ? 0 : 1);
+      parte.set(bytes.subarray(i, i + n), 1);
+      this.dc.send(parte);
+      i += n;
+    } while (i < bytes.length);
+  }
+  receber(dados) {
+    const b = new Uint8Array(dados), flag = b[0];
+    this.partes.push(b.slice(1));
+    if (flag & 1) return;
+    const tam = this.partes.reduce((s, p) => s + p.length, 0), tudo = new Uint8Array(tam);
+    let o = 0;
+    for (const p of this.partes) { tudo.set(p, o); o += p.length; }
+    this.partes = [];
+    if (this.onmessage) this.onmessage({ data: flag & 2 ? new TextDecoder().decode(tudo) : tudo.buffer });
+  }
+  close() {
+    if (this.readyState === 3) return;
+    this.readyState = 3; clearTimeout(this.limite);
+    if (this.motivo !== "sem-webrtc") {
+      this.sinalizar({ t: "fim" });
+      for (const x of [this.dc, this.pc, this.sinal]) { try { x && x.close(); } catch (_) {} }
+    }
+    setTimeout(() => this.onclose && this.onclose(), 0);
+  }
+}
+
+function conectar() {
+  clearTimeout(C.timer);
+  if (C.ws && C.ws.readyState <= 1) return;
+  C.tchau = null; C.nonce = null; C.nonceUsado = true;
+  let ws;
+  try { ws = SALA ? new CanalP2P(SALA) : new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"); }
+  catch (e) { return fechou(); }
+  ws.binaryType = "arraybuffer";
+  C.ws = ws;
+  ws.onmessage = e => {
+    if (ws !== C.ws) return;
+    if (typeof e.data === "string") { let m; try { m = JSON.parse(e.data); } catch (_) { return; } mensagem(m); }
+    else Video.quadro(e.data);
+  };
+  ws.onclose = () => { if (ws === C.ws) { C.motivo = ws.motivo || ""; fechou(); } };
+}
+function enviar(obj) { const ws = C.ws; if (ws && ws.readyState === 1 && C.ativo) ws.send(JSON.stringify(obj)); }
+function enviarCru(obj) { const ws = C.ws; if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+
+function credencial() {
+  const ap = lerJSON("aparelho");
+  if (C.convite) return [{ modo: "convite" }, C.convite];
+  if (ap && ap.id && ap.token) return [{ modo: "aparelho", id: ap.id }, ap.token];
+  if (C.senha) return [{ modo: "senha", lembrar: C.lembrar }, normalizar(C.senha)];
+  return null;
+}
+function tentarEntrar() {
+  if (!C.nonce || C.nonceUsado || C.sair) return false;
+  const cred = credencial();
+  if (!cred) { Login.estado("senha"); return true; }
+  const [campos, chave] = cred;
+  C.nonceUsado = true; C.modo = campos.modo;
+  if (!S.naSessao) Login.estado("entrando");
+  let desafio = C.nonce;
+  if (C.ws && C.ws.vinculo) { desafio = new Uint8Array(C.nonce.length + C.ws.vinculo.length); desafio.set(C.nonce); desafio.set(C.ws.vinculo, C.nonce.length); }
+  enviarCru({ t: "auth", nome: nomeAparelho(), ...campos, mac: SHA.hex(SHA.hmac(utf8(chave), desafio)) });
+  return true;
+}
+
+function mensagem(m) {
+  switch (m.t) {
+    case "ola":
+      C.nonce = deBase64(m.nonce); C.nonceUsado = false; S.pc = m.pc || "PC";
+      document.title = "Ponte Remota · " + S.pc;
+      if (C.sair) Login.estado("saiu"); else tentarEntrar();
+      break;
+    case "bem_vindo": entrou(m); break;
+    case "negado": negado(m); break;
+    case "c":
+      if (S.modo === "touchpad" && agora() < S.curLocalAte) { S.cur.f = m.f; S.cur.v = m.v; }
+      else S.cur = { x: m.x, y: m.y, f: m.f, v: m.v };
+      Tela.pedir();
+      break;
+    case "pong":
+      if (typeof m.ts === "number") { const r = agora() - m.ts; S.rtt = S.rtt == null ? r : S.rtt * 0.7 + r * 0.3; Barra.stats(); }
+      break;
+    case "monitores":
+      S.monitores = m.monitores; S.monitor = m.monitor; Tela.reiniciarVista(); Folhas.monitores();
+      aviso("Os monitores do PC mudaram.");
+      break;
+    case "aviso": Faixa.tela(m.tipo); break;
+    case "energia": Faixa.energia(m.acao, m.em); break;
+    case "energia_negada": aviso("Desligar e reiniciar estão desativados no PC."); break;
+    case "clip":
+      $("#area").value = m.s || "";
+      $("#clip-status").textContent = m.s ? "Texto do PC carregado. Toque em Copiar no tablet para levar." : "A área de transferência do PC está vazia (ou não tem texto).";
+      break;
+    case "clip_ok":
+      $("#clip-status").textContent = m.ok ? (m.colou ? "Enviado e colado no PC." : "Enviado. No PC, é só colar.") : "O PC não deixou mexer na área de transferência agora.";
+      break;
+    case "tchau": C.tchau = m.motivo || "O PC encerrou a sessão."; break;
+  }
+}
+
+function entrou(m) {
+  C.ativo = true; C.tentativas = 0; C.convite = null; C.negado = false;
+  if (m.aparelho) guardar("aparelho", m.aparelho);
+  S.pc = m.pc || S.pc; S.monitores = m.monitores || []; S.monitor = m.monitor || 0;
+  S.energia = !!m.energia; S.via = m.via || "";
+  Sessao.abrir();
+  enviar({ t: "cfg", qualidade: S.qualidade, fps: S.fps });
+  if (document.hidden) enviar({ t: "pausa", v: true });
+  Ping.iniciar();
+}
+
+function negado(m) {
+  C.negado = true;
+  if (m.motivo === "aparelho") { apagar("aparelho"); Login.erro("Este aparelho foi esquecido no PC. Entre com a senha."); }
+  else if (m.motivo === "convite") { C.convite = null; Login.erro("Esse QR já foi usado ou venceu. Gere outro no PC ou digite a senha."); }
+  else if (m.motivo === "bloqueado") { C.senha = null; Login.erro("Muitas tentativas erradas. Espere " + (m.espera || 30) + " s e tente de novo."); }
+  else { C.senha = null; Login.erro("Senha errada. Confira no PC (maiúsculas, espaços e hífens não importam)."); }
+  if (S.naSessao) Sessao.voltarAoLogin();
+}
+
+function fechou() {
+  C.ws = null;
+  const estava = C.ativo;
+  C.ativo = false;
+  Ping.parar();
+  if (C.sair) return;
+  if (C.tchau) { Sessao.encerrada(C.tchau); return; }
+  if (estava || S.naSessao) { Sessao.reconectando(); agendar(); return; }
+  if (C.negado) { C.negado = false; C.timer = setTimeout(conectar, 400); return; }
+  if (!C.nonce) Login.estado("sem-pc");
+  agendar();
+}
+function agendar() {
+  const t = Math.min(10000, 1000 * 2 ** Math.min(C.tentativas++, 4));
+  clearTimeout(C.timer);
+  C.timer = setTimeout(conectar, t);
+}
+
+const Ping = (() => {
+  let timer = 0;
+  return {
+    iniciar() { clearInterval(timer); const p = () => enviar({ t: "ping", ts: agora(), rtt: S.rtt == null ? null : Math.round(S.rtt) }); p(); timer = setInterval(p, 2000); },
+    parar() { clearInterval(timer); },
+  };
+})();
+
+$("#form-senha").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = $("#senha").value.trim();
+  if (normalizar(v).length < 6) { Login.erro("Digite a senha que aparece no PC."); return; }
+  C.senha = v; C.lembrar = $("#lembrar").checked; C.sair = false;
+  Login.erro("");
+  $("#senha").blur();
+  if (!tentarEntrar()) conectar();
+});
+$("#entrar-de-novo").onclick = () => { C.sair = false; Login.erro(""); if (!tentarEntrar()) conectar(); };
+$("#esquecer").onclick = () => {
+  apagar("aparelho"); C.senha = null; C.sair = false;
+  aviso("Este aparelho foi esquecido aqui. No PC, ele some da lista quando você tocar em Esquecer lá.", 4200);
+  Login.estado("senha");
+  if (!C.ws) conectar();
+};
+
+/* ---------------------------------------------------------------- imagem */
+const Video = (() => {
+  const fb = document.createElement("canvas"), fctx = fb.getContext("2d");
+  let cadeia = Promise.resolve(), bytes = 0, quadros = 0, t0 = agora();
+  function quadro(buf) {
+    bytes += buf.byteLength;
+    let dv, w, h, id, n, o = 12;
+    try {
+      dv = new DataView(buf);
+      if (dv.getUint8(0) !== 1) return;
+      w = dv.getUint16(2, true); h = dv.getUint16(4, true); id = dv.getUint32(6, true); n = dv.getUint16(10, true);
+    } catch (e) { return; }
+    const pedacos = [];
+    try {
+      for (let i = 0; i < n; i++) {
+        const x = dv.getUint16(o, true), y = dv.getUint16(o + 2, true), tam = dv.getUint32(o + 8, true);
+        o += 12;
+        const blob = new Blob([new Uint8Array(buf, o, tam)], { type: "image/jpeg" });
+        o += tam;
+        pedacos.push({ x, y, img: createImageBitmap(blob) });
+      }
+    } catch (e) { enviar({ t: "a", id }); enviar({ t: "completo" }); return; }
+    // decodifica em paralelo, mas aplica na ordem de chegada (senão um quadro velho cobriria um novo)
+    cadeia = cadeia.then(async () => {
+      let ok = true;
+      const imgs = await Promise.all(pedacos.map(p => p.img.catch(() => { ok = false; return null; })));
+      if (fb.width !== w || fb.height !== h) { fb.width = w; fb.height = h; }
+      imgs.forEach((img, i) => { if (img) { fctx.drawImage(img, pedacos[i].x, pedacos[i].y); if (img.close) img.close(); } });
+      S.fbW = w; S.fbH = h; S.ultimoQuadro = agora();
+      enviar({ t: "a", id });
+      if (!ok) enviar({ t: "completo" });
+      quadros++;
+      Tela.pedir();
+    });
+  }
+  setInterval(() => {
+    const t = agora(), dt = (t - t0) / 1000;
+    S.qps = Math.round(quadros / dt); S.kbps = Math.round(bytes / 1024 / dt);
+    quadros = 0; bytes = 0; t0 = t;
+    Barra.stats();
+  }, 1000);
+  return { quadro, fb };
+})();
+
+/* ---------------------------------------------------------------- tela: zoom, posição e desenho */
+const Tela = (() => {
+  const cv = $("#tela"), ctx = cv.getContext("2d");
+  const V = { z: 1, k0: 1, k: 1, ox: 0, oy: 0, vw: 0, vh: 0 };
+  let pendente = false;
+  function dims() {
+    const m = S.monitores[S.monitor];
+    return m ? [m.w, m.h] : [S.fbW || 1920, S.fbH || 1080];
+  }
+  function limitar() {
+    const [W, H] = dims(), vw = innerWidth, vh = innerHeight, LW = W * V.k, LH = H * V.k;
+    V.ox = LW <= vw ? (vw - LW) / 2 : clamp(V.ox, vw - LW, 0);
+    V.oy = LH <= vh ? (vh - LH) / 2 : clamp(V.oy, vh - LH, 0);
+  }
+  function ajustar() {
+    const [W, H] = dims(), vw = innerWidth, vh = innerHeight;
+    const centro = V.vw ? { x: (V.vw / 2 - V.ox) / V.k, y: (V.vh / 2 - V.oy) / V.k } : { x: W / 2, y: H / 2 };
+    V.k0 = Math.min(vw / W, vh / H); V.k = V.k0 * V.z;
+    V.ox = vw / 2 - centro.x * V.k; V.oy = vh / 2 - centro.y * V.k;
+    V.vw = vw; V.vh = vh;
+    limitar();
+  }
+  function reiniciarVista() { V.z = 1; V.vw = 0; ajustar(); pedir(); }
+  function cssParaMon(cx, cy) {
+    const [W, H] = dims();
+    return { x: clamp((cx - V.ox) / V.k, 0, W - 1), y: clamp((cy - V.oy) / V.k, 0, H - 1) };
+  }
+  function monParaCss(x, y) { return { x: V.ox + x * V.k, y: V.oy + y * V.k }; }
+  function zoomEm(z, cx, cy) {
+    const mx = (cx - V.ox) / V.k, my = (cy - V.oy) / V.k;
+    V.z = clamp(z, 1, 6); V.k = V.k0 * V.z;
+    V.ox = cx - mx * V.k; V.oy = cy - my * V.k;
+    limitar(); pedir();
+  }
+  function arrastar(dx, dy) { V.ox += dx; V.oy += dy; limitar(); pedir(); }
+  function seguir(x, y) {  // com zoom, a vista acompanha o cursor
+    if (V.z <= 1.001) return;
+    const p = monParaCss(x, y), m = 70, vw = innerWidth, vh = innerHeight;
+    if (p.x < m) V.ox += m - p.x; else if (p.x > vw - m) V.ox -= p.x - (vw - m);
+    if (p.y < m) V.oy += m - p.y; else if (p.y > vh - m) V.oy -= p.y - (vh - m);
+    limitar();
+  }
+  function desenhar() {
+    pendente = false;
+    if (!S.naSessao) return;
+    const vw = innerWidth, vh = innerHeight, dpr = Math.min(devicePixelRatio || 1, 3);
+    const cw = Math.round(vw * dpr), ch = Math.round(vh * dpr);
+    if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
+    if (V.vw !== vw || V.vh !== vh) ajustar();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, vw, vh);
+    if (!S.fbW) return;
+    const [W, H] = dims();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(Video.fb, 0, 0, S.fbW, S.fbH, V.ox, V.oy, W * V.k, H * V.k);
+    if (S.cur.v) { const p = monParaCss(S.cur.x, S.cur.y); Cursor.desenhar(ctx, p.x, p.y, S.cur.f, V.k); }
+  }
+  function pedir() { if (!pendente) { pendente = true; requestAnimationFrame(desenhar); } }
+  addEventListener("resize", () => { if (S.naSessao) { ajustar(); pedir(); } });
+  return { V, dims, cssParaMon, monParaCss, zoomEm, arrastar, seguir, pedir, reiniciarVista, cv };
+})();
+window.Tela = Tela;
+
+/* ---------------------------------------------------------------- cursor desenhado no tablet */
+const Cursor = (() => {
+  const SETA = new Path2D("M1 1v15.5l4.2-4 2.9 6.6 2.6-1.1-2.9-6.5H13.5Z");
+  const MAO = new Path2D("M8.5 1.8c.9 0 1.6.7 1.6 1.6v5.4c.3-.4.8-.6 1.3-.6.9 0 1.6.7 1.6 1.6v.3c.3-.3.7-.5 1.2-.5.9 0 1.6.7 1.6 1.6v.6c.3-.2.6-.3 1-.3.9 0 1.5.7 1.5 1.6v3.6c0 3.2-2.4 5.6-5.6 5.6h-1.6c-1.8 0-3.4-.9-4.4-2.4l-3-4.6c-.5-.8-.3-1.8.5-2.2.7-.4 1.5-.2 2 .4l1.1 1.4V3.4c0-.9.7-1.6 1.6-1.6z");
+  const SETA_DUPLA = new Path2D("M-9 0H9M-9 0l3.6-3.6M-9 0l3.6 3.6M9 0L5.4-3.6M9 0L5.4 3.6");
+  function contorno(ctx, p, larg) {
+    ctx.strokeStyle = "#000"; ctx.lineWidth = larg + 2.2; ctx.stroke(p);
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = larg; ctx.stroke(p);
+  }
+  function desenhar(ctx, x, y, forma, k) {
+    const esc = clamp(k * 1.3, 0.85, 1.6);
+    ctx.save();
+    ctx.translate(Math.round(x), Math.round(y));
+    ctx.scale(esc, esc);
+    ctx.lineJoin = "round"; ctx.lineCap = "round";
+    if (forma === "texto") {
+      contorno(ctx, new Path2D("M-3.5-9.5h7M-3.5 9.5h7M0-9.5v19"), 1.4);
+    } else if (forma === "mao") {
+      ctx.translate(-8.5, -1.8);
+      ctx.fillStyle = "#fff"; ctx.strokeStyle = "#000"; ctx.lineWidth = 1.2; ctx.fill(MAO); ctx.stroke(MAO);
+    } else if (["we", "ns", "nwse", "nesw"].includes(forma)) {
+      ctx.rotate({ we: 0, ns: Math.PI / 2, nwse: Math.PI / 4, nesw: -Math.PI / 4 }[forma]);
+      contorno(ctx, SETA_DUPLA, 1.6);
+    } else if (forma === "mover") {
+      contorno(ctx, SETA_DUPLA, 1.6); ctx.rotate(Math.PI / 2); contorno(ctx, SETA_DUPLA, 1.6);
+    } else if (forma === "cruz") {
+      contorno(ctx, new Path2D("M-9 0H9M0-9V9"), 1.4);
+    } else if (forma === "proibido") {
+      const p = new Path2D(); p.arc(0, 0, 8, 0, Math.PI * 2); p.moveTo(-5.6, 5.6); p.lineTo(5.6, -5.6);
+      contorno(ctx, p, 2);
+    } else if (forma === "espera") {
+      const p = new Path2D(); p.arc(0, 0, 8, 0, Math.PI * 2); contorno(ctx, p, 2.4);
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent"); ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.arc(0, 0, 8, -Math.PI / 2, Math.PI / 3); ctx.stroke();
+    } else {
+      ctx.fillStyle = "#fff"; ctx.strokeStyle = "#000"; ctx.lineWidth = 1.2;
+      ctx.translate(-1, -1); ctx.fill(SETA); ctx.stroke(SETA);
+      if (forma === "progresso") {
+        ctx.translate(15, 15);
+        const p = new Path2D(); p.arc(0, 0, 4.5, 0, Math.PI * 2); contorno(ctx, p, 1.8);
+      }
+    }
+    ctx.restore();
+  }
+  return { desenhar };
+})();
+
+/* ---------------------------------------------------------------- envio de mouse */
+let movPendente = null, movAgendado = false;
+function enviarMover(p) {
+  movPendente = p;
+  if (movAgendado) return;
+  movAgendado = true;
+  requestAnimationFrame(() => {
+    movAgendado = false;
+    if (movPendente) { enviar({ t: "m", x: Math.round(movPendente.x), y: Math.round(movPendente.y) }); movPendente = null; }
+  });
+}
+function botao(b, desce, p = S.cur) {
+  movPendente = null;
+  enviar({ t: "b", b, d: desce, x: Math.round(p.x), y: Math.round(p.y) });
+}
+function clique(b, p = S.cur) { botao(b, true, p); botao(b, false, p); }
+function posicionar(p) { S.cur.x = p.x; S.cur.y = p.y; S.cur.v = true; S.curLocalAte = agora() + 300; Tela.pedir(); }
+
+/* ---------------------------------------------------------------- gestos */
+const Gestos = (() => {
+  const cv = Tela.cv;
+  const dedos = new Map();
+  let g = null, inercia = null;
+  const K_ROLAGEM = 2.4;  // 1 px de dedo ≈ 1 px de conteúdo (120 = 3 linhas)
+
+  function centro() { let x = 0, y = 0; for (const d of dedos.values()) { x += d.x; y += d.y; } return { x: x / dedos.size, y: y / dedos.size }; }
+  function distancia() { const [a, b] = [...dedos.values()]; return b ? Math.hypot(a.x - b.x, a.y - b.y) : 0; }
+  function direto(e) { return S.modo === "toque" || e.pointerType === "pen"; }
+
+  function rolar(dxCss, dyCss) {
+    g.rolX += dxCss * K_ROLAGEM; g.rolY += dyCss * K_ROLAGEM;
+    const iy = Math.trunc(g.rolY), ix = Math.trunc(g.rolX);
+    if (iy || ix) { enviar({ t: "w", dy: iy, dx: -ix }); g.rolY -= iy; g.rolX -= ix; }
+  }
+  function soltarInercia(vx, vy) {  // continua rolando um pouco depois de soltar, como no celular
+    if (Math.hypot(vx, vy) < 0.35) return;
+    let ult = agora(), ax = 0, ay = 0;
+    const meu = inercia = {};
+    const passo = t => {
+      if (inercia !== meu) return;
+      const dt = Math.min(48, t - ult); ult = t;
+      const f = Math.pow(0.004, dt / 1000);
+      vx *= f; vy *= f;
+      ay += vy * dt * K_ROLAGEM; ax += vx * dt * K_ROLAGEM;
+      const iy = Math.trunc(ay), ix = Math.trunc(ax);
+      if (iy || ix) { enviar({ t: "w", dy: iy, dx: -ix }); ay -= iy; ax -= ix; }
+      if (Math.hypot(vx, vy) > 0.04) requestAnimationFrame(passo); else inercia = null;
+    };
+    requestAnimationFrame(passo);
+  }
+
+  function inicioUm(e) {
+    const d = dedos.get(e.pointerId);
+    g = { n: 1, t0: agora(), x0: d.x, y0: d.y, ux: d.x, uy: d.y, ut: agora(), moveu: false, arrastando: false,
+          consumido: false, direto: direto(e) };
+    g.timer = setTimeout(() => {
+      if (!g || g.n !== 1 || g.moveu) return;
+      if (g.direto) { const p = Tela.cssParaMon(g.x0, g.y0); posicionar(p); clique(2, p); g.consumido = true; }
+      else { g.arrastando = true; botao(0, true); aviso("Segurando o clique: arraste e solte.", 1400); }
+      vibrar();
+    }, g.direto ? 520 : 420);
+  }
+  function moverUm(d) {
+    const dist = Math.hypot(d.x - g.x0, d.y - g.y0);
+    if (g.direto) {
+      if (!g.moveu && dist > 9) {
+        g.moveu = true; clearTimeout(g.timer);
+        if (!g.consumido) { const p0 = Tela.cssParaMon(g.x0, g.y0); posicionar(p0); botao(0, true, p0); g.arrastando = true; }
+      }
+      if (g.arrastando) { const p = Tela.cssParaMon(d.x, d.y); posicionar(p); enviarMover(p); }
+    } else {
+      if (!g.moveu && dist > 3) { g.moveu = true; if (!g.arrastando) clearTimeout(g.timer); }
+      if (g.moveu) {
+        if (!S.cur.v && !g.trouxe) {  // cursor em outro monitor: traz para o meio deste
+          const [W, H] = Tela.dims(); S.cur.x = W / 2; S.cur.y = H / 2; g.trouxe = true;
+        }
+        const t = agora(), dx = d.x - g.ux, dy = d.y - g.uy, dt = Math.max(1, t - g.ut);
+        const v = Math.hypot(dx, dy) / dt;
+        const ganho = S.velocidade * (1 + 1.6 * clamp((v - 0.25) / 1.4, 0, 1)) / Tela.V.k;
+        const [W, H] = Tela.dims();
+        S.cur.x = clamp(S.cur.x + dx * ganho, 0, W - 1);
+        S.cur.y = clamp(S.cur.y + dy * ganho, 0, H - 1);
+        S.cur.v = true; S.curLocalAte = t + 300;
+        Tela.seguir(S.cur.x, S.cur.y);
+        enviarMover(S.cur); Tela.pedir();
+        g.ut = t;
+      }
+    }
+    g.ux = d.x; g.uy = d.y;
+  }
+  function fimUm() {
+    clearTimeout(g.timer);
+    const rapido = agora() - g.t0 < 320, perto = Math.hypot(g.ux - g.x0, g.uy - g.y0) < 12;
+    if (g.arrastando) botao(0, false);
+    else if (!g.consumido && rapido && perto) {
+      if (g.direto) { const p = Tela.cssParaMon(g.x0, g.y0); posicionar(p); clique(0, p); }
+      else clique(0);
+    }
+  }
+
+  function inicioDois() {
+    if (g && g.n === 1) { clearTimeout(g.timer); if (g.arrastando) botao(0, false); }
+    const c = centro(), d = distancia();
+    g = { n: 2, t0: agora(), c0: c, ca: c, d0: d, da: d, modo: null, rolX: 0, rolY: 0, hist: [] };
+  }
+  function moverDois() {
+    const c = centro(), d = distancia();
+    if (!g.modo) {
+      if (Math.abs(d - g.d0) > 30) g.modo = "zoom";
+      else if (Math.hypot(c.x - g.c0.x, c.y - g.c0.y) > 10) g.modo = "rolar";
+    }
+    if (g.modo === "rolar") {
+      rolar(c.x - g.ca.x, c.y - g.ca.y);
+      const t = agora();
+      g.hist.push({ t, x: c.x, y: c.y });
+      while (g.hist.length > 2 && t - g.hist[0].t > 90) g.hist.shift();
+    } else if (g.modo === "zoom" && g.da > 0) {
+      Tela.zoomEm(Tela.V.z * d / g.da, c.x, c.y);
+      Tela.arrastar(c.x - g.ca.x, c.y - g.ca.y);
+    }
+    g.ca = c; g.da = d;
+  }
+  function fimDois() {
+    if (!g.modo && agora() - g.t0 < 300) {
+      if (S.modo === "toque") { const p = Tela.cssParaMon(g.c0.x, g.c0.y); posicionar(p); clique(2, p); }
+      else clique(2);
+    } else if (g.modo === "rolar" && g.hist.length >= 2) {
+      const a = g.hist[0], b = g.hist[g.hist.length - 1], dt = b.t - a.t;
+      if (dt > 0 && agora() - b.t < 60) soltarInercia((b.x - a.x) / dt, (b.y - a.y) / dt);
+    } else if (g.modo === "zoom" && Tela.V.z < 1.06) Tela.reiniciarVista();
+  }
+
+  cv.addEventListener("pointerdown", e => {
+    if (e.pointerType === "mouse") return;
+    e.preventDefault();
+    try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+    inercia = null;
+    Barra.tocouNaTela();
+    dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (dedos.size === 1) inicioUm(e);
+    else if (dedos.size === 2) inicioDois();
+    else if (dedos.size === 3) { if (g && g.n === 2 && g.modo) return; g = { n: 3, t0: agora(), moveu: false, c0: centro() }; }
+  }, { passive: false });
+  cv.addEventListener("pointermove", e => {
+    if (e.pointerType === "mouse" || !dedos.has(e.pointerId)) return;
+    const d = dedos.get(e.pointerId);
+    d.x = e.clientX; d.y = e.clientY;
+    if (!g) return;
+    if (g.n === 1 && dedos.size === 1) moverUm(d);
+    else if (g.n === 2 && dedos.size === 2) moverDois();
+    else if (g.n === 3) { const c = centro(); if (Math.hypot(c.x - g.c0.x, c.y - g.c0.y) > 14) g.moveu = true; }
+  });
+  const levantar = e => {
+    if (e.pointerType === "mouse" || !dedos.has(e.pointerId)) return;
+    dedos.delete(e.pointerId);
+    if (!g) return;
+    if (g.n === 1 && dedos.size === 0) { fimUm(); g = null; }
+    else if (g.n === 2 && dedos.size === 1) { fimDois(); g = { n: "resto" }; }
+    else if (g.n === 3 && dedos.size === 2) {
+      if (!g.moveu && agora() - g.t0 < 350) Teclado.alternar();
+      g = { n: "resto" };
+    }
+    if (dedos.size === 0) g = null;
+  };
+  cv.addEventListener("pointerup", levantar);
+  cv.addEventListener("pointercancel", levantar);
+
+  /* mouse de verdade ligado no tablet: segue o ponteiro, botões e roda */
+  const BOTOES = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4 };
+  cv.addEventListener("mousedown", e => {
+    e.preventDefault(); Barra.tocouNaTela();
+    const p = Tela.cssParaMon(e.clientX, e.clientY); posicionar(p);
+    if (e.button in BOTOES) botao(BOTOES[e.button], true, p);
+  });
+  addEventListener("mouseup", e => {
+    if (!S.naSessao || e.target !== cv) return;
+    const p = Tela.cssParaMon(e.clientX, e.clientY);
+    if (e.button in BOTOES) botao(BOTOES[e.button], false, p);
+  });
+  cv.addEventListener("mousemove", e => {
+    if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+    const p = Tela.cssParaMon(e.clientX, e.clientY); posicionar(p); enviarMover(p);
+  });
+  cv.addEventListener("wheel", e => {
+    e.preventDefault();
+    if (e.ctrlKey) { Tela.zoomEm(Tela.V.z * Math.pow(1.0018, -e.deltaY), e.clientX, e.clientY); return; }
+    const mult = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 360 : 1.2;
+    const dy = Math.round(-e.deltaY * mult), dx = Math.round(e.deltaX * mult);
+    if (dy || dx) enviar({ t: "w", dy, dx });
+  }, { passive: false });
+  cv.addEventListener("contextmenu", e => e.preventDefault());
+  return {};
+})();
+
+/* ---------------------------------------------------------------- teclado */
+const VK = (() => {
+  const m = {
+    Backspace: 8, Tab: 9, Enter: 13, NumpadEnter: 13, ShiftLeft: 0xA0, ShiftRight: 0xA1, ControlLeft: 0xA2, ControlRight: 0xA3,
+    AltLeft: 0xA4, AltRight: 0xA5, Pause: 0x13, CapsLock: 0x14, Escape: 0x1B, Space: 0x20, PageUp: 0x21, PageDown: 0x22,
+    End: 0x23, Home: 0x24, ArrowLeft: 0x25, ArrowUp: 0x26, ArrowRight: 0x27, ArrowDown: 0x28, PrintScreen: 0x2C,
+    Insert: 0x2D, Delete: 0x2E, MetaLeft: 0x5B, MetaRight: 0x5C, OSLeft: 0x5B, OSRight: 0x5C, ContextMenu: 0x5D,
+    NumpadMultiply: 0x6A, NumpadAdd: 0x6B, NumpadSubtract: 0x6D, NumpadDecimal: 0x6E, NumpadDivide: 0x6F,
+    NumLock: 0x90, ScrollLock: 0x91, Semicolon: 0xBA, Equal: 0xBB, Comma: 0xBC, Minus: 0xBD, Period: 0xBE, Slash: 0xBF,
+    Backquote: 0xC0, BracketLeft: 0xDB, Backslash: 0xDC, BracketRight: 0xDD, Quote: 0xDE, IntlBackslash: 0xE2, IntlRo: 0xC1,
+  };
+  for (let i = 0; i < 26; i++) m["Key" + String.fromCharCode(65 + i)] = 65 + i;
+  for (let i = 0; i < 10; i++) { m["Digit" + i] = 48 + i; m["Numpad" + i] = 0x60 + i; }
+  for (let i = 1; i <= 24; i++) m["F" + i] = 0x6F + i;
+  return m;
+})();
+
+const Teclado = (() => {
+  const ta = $("#entrada-texto"), barraT = $("#barra-teclado");
+  const SENT = " ".repeat(16);
+  let anterior = SENT, compondo = false, aberto = false;
+  const apertadas = new Map();
+  // Ctrl, Alt, Shift, Win: 0 solto, 1 vale para a próxima tecla, 2 travado (fica apertado no PC)
+  const MODS = [["Ctrl", 0x11], ["Alt", 0x12], ["Shift", 0x10], ["Win", 0x5B]];
+  const mods = { 0x11: 0, 0x12: 0, 0x10: 0, 0x5B: 0 };
+  const NAV = [["Esc", 0x1B], ["Tab", 0x09], ["Enter", 0x0D], ["⌫", 0x08], ["←", 0x25], ["↑", 0x26], ["↓", 0x28], ["→", 0x27],
+               ["Home", 0x24], ["End", 0x23], ["PgUp", 0x21], ["PgDn", 0x22], ["Ins", 0x2D], ["Del", 0x2E], ["PrtSc", 0x2C]];
+  const FS = Array.from({ length: 12 }, (_, i) => ["F" + (i + 1), 0x70 + i]);
+
+  function zerar() {
+    ta.value = SENT; anterior = SENT;
+    try { ta.setSelectionRange(SENT.length, SENT.length); } catch (e) {}
+  }
+  function abrir() {
+    zerar();
+    ta.focus({ preventScroll: true });
+    aberto = true;
+    document.body.classList.add("teclado-aberto");
+    barraT.hidden = false;
+    Barra.marcar("teclado", true);
+  }
+  function fechar() { ta.blur(); }
+  function alternar() { aberto ? fechar() : abrir(); }
+  ta.addEventListener("blur", () => {
+    aberto = false;
+    document.body.classList.remove("teclado-aberto");
+    barraT.hidden = true;
+    Barra.marcar("teclado", false);
+  });
+  ta.addEventListener("compositionstart", () => { compondo = true; });
+  ta.addEventListener("compositionend", () => { compondo = false; });
+  // O teclado do Android quase não manda teclas, só muda o texto. Compara com o texto anterior
+  // e manda ao PC o que foi apagado (Backspace) e o que foi escrito.
+  ta.addEventListener("input", () => {
+    const atual = ta.value;
+    let p = 0;
+    const lim = Math.min(anterior.length, atual.length);
+    while (p < lim && anterior[p] === atual[p]) p++;
+    const apagar = anterior.length - p, inserir = atual.slice(p);
+    anterior = atual;
+    if (apagar || inserir) escrever(apagar, inserir);
+    if (!compondo && (atual.length < 4 || atual.length > 300)) zerar();
+  });
+  function vkDe(ch) {
+    const c = ch.toUpperCase();
+    if (/^[A-Z0-9]$/.test(c)) return c.charCodeAt(0);
+    if (ch === " ") return 0x20;
+    if (ch === "\n") return 0x0D;
+    return 0;
+  }
+  function umaVez() { return MODS.map(m => m[1]).filter(vk => mods[vk] === 1); }
+  function gastar() { for (const vk of umaVez()) mods[vk] = 0; pintarMods(); }
+  function escrever(apagar, inserir) {
+    const ativos = umaVez();
+    if (ativos.length && !apagar && inserir.length === 1 && vkDe(inserir)) {
+      enviar({ t: "atalho", vks: [...ativos, vkDe(inserir)] }); gastar(); return;
+    }
+    enviar({ t: "txt", s: "\b".repeat(apagar) + inserir });
+  }
+  function especial(vk) {  // tecla da barra ou da folha, levando os modificadores
+    const ativos = umaVez();
+    if (ativos.length) { enviar({ t: "atalho", vks: [...ativos, vk] }); gastar(); }
+    else { enviar({ t: "k", vk, d: true }); enviar({ t: "k", vk, d: false }); }
+  }
+  function alternarMod(vk) {
+    const antes = mods[vk];
+    mods[vk] = (antes + 1) % 3;
+    if (mods[vk] === 2) enviar({ t: "k", vk, d: true });
+    if (antes === 2) enviar({ t: "k", vk, d: false });
+    pintarMods();
+  }
+  function soltarMods() {
+    for (const [, vk] of MODS) { if (mods[vk] === 2) enviar({ t: "k", vk, d: false }); mods[vk] = 0; }
+    pintarMods();
+  }
+  function pintarMods() {
+    $$("[data-mod]").forEach(b => { const v = mods[+b.dataset.mod]; b.classList.toggle("m1", v === 1); b.classList.toggle("m2", v === 2); });
+  }
+  function soltarTudo() {
+    for (const [code, vk] of apertadas) enviar({ t: "k", vk, d: false, e: code === "NumpadEnter" });
+    apertadas.clear();
+  }
+
+  // botões das teclas: não tiram o foco do teclado do tablet
+  function botaoTecla(rot, vk, ehMod) {
+    const b = document.createElement("button");
+    b.className = "tecla"; b.textContent = rot; b.type = "button";
+    if (ehMod) b.dataset.mod = vk;
+    b.addEventListener("pointerdown", e => e.preventDefault());
+    b.addEventListener("mousedown", e => e.preventDefault());
+    b.addEventListener("click", () => { ehMod ? alternarMod(vk) : especial(vk); vibrar(8); });
+    return b;
+  }
+  function montar() {
+    barraT.append(...MODS.map(([r, vk]) => botaoTecla(r, vk, true)));
+    const d1 = document.createElement("span"); d1.className = "div-teclas"; barraT.append(d1);
+    barraT.append(...NAV.filter(n => !["Ins", "PrtSc", "Enter"].includes(n[0])).map(([r, vk]) => botaoTecla(r, vk)));
+    const d2 = document.createElement("span"); d2.className = "div-teclas"; barraT.append(d2);
+    barraT.append(...FS.map(([r, vk]) => botaoTecla(r, vk)));
+    const bFechar = document.createElement("button");
+    bFechar.className = "tecla fechar"; bFechar.type = "button"; bFechar.textContent = "⌨ ✕"; bFechar.title = "Fechar o teclado";
+    bFechar.addEventListener("click", () => ta.blur());
+    barraT.append(bFechar);
+    $("#mods-folha").append(...MODS.map(([r, vk]) => botaoTecla(r, vk, true)));
+    $("#nav-folha").append(...NAV.map(([r, vk]) => botaoTecla(r, vk)));
+    $("#f-folha").append(...FS.map(([r, vk]) => botaoTecla(r, vk)));
+  }
+  montar();
+
+  // teclado físico (Bluetooth/USB) no tablet
+  addEventListener("keydown", e => {
+    if (!S.naSessao || !C.ativo) return;
+    const alvo = e.target;
+    if (alvo !== ta && alvo && alvo.closest && alvo.closest("input, textarea, select, [contenteditable]")) return;
+    if (e.isComposing || e.keyCode === 229) return;
+    const altgr = e.getModifierState && e.getModifierState("AltGraph");
+    const comMods = (e.ctrlKey || e.altKey || e.metaKey) && !altgr;
+    if (e.key && e.key.length === 1 && !comMods) { e.preventDefault(); enviar({ t: "txt", s: e.key }); return; }
+    const vk = VK[e.code];
+    if (!vk) return;
+    e.preventDefault();
+    apertadas.set(e.code, vk);
+    enviar({ t: "k", vk, d: true, e: e.code === "NumpadEnter" });
+  });
+  addEventListener("keyup", e => {
+    const vk = apertadas.get(e.code);
+    if (vk === undefined) return;
+    apertadas.delete(e.code);
+    e.preventDefault();
+    enviar({ t: "k", vk, d: false, e: e.code === "NumpadEnter" });
+  });
+  addEventListener("blur", soltarTudo);
+  return { abrir, fechar, alternar, soltarTudo, soltarMods, especial, get aberto() { return aberto; } };
+})();
+
+/* acompanha o teclado do tablet quando o navegador não encolhe a página sozinho */
+if (window.visualViewport) {
+  const posicionarBarra = () => {
+    const vv = visualViewport;
+    const baixo = Math.max(0, innerHeight - vv.height - vv.offsetTop);
+    $("#barra-teclado").style.bottom = baixo + "px";
+  };
+  visualViewport.addEventListener("resize", posicionarBarra);
+  visualViewport.addEventListener("scroll", posicionarBarra);
+}
+
+/* ---------------------------------------------------------------- barra de ferramentas */
+const Barra = (() => {
+  const barra = $("#barra"), puxador = $("#puxador");
+  let timer = 0;
+  function mostrar() { barra.classList.remove("recolhida"); puxador.hidden = true; agendar(); }
+  function recolher() { if (Folhas.aberta()) return; barra.classList.add("recolhida"); puxador.hidden = false; }
+  function agendar(ms = 6000) { clearTimeout(timer); timer = setTimeout(recolher, ms); }
+  function tocouNaTela() { if (!barra.classList.contains("recolhida")) agendar(2500); }
+  function marcar(acao, sim) { const b = $(`#barra [data-acao="${acao}"]`); if (b) b.setAttribute("aria-pressed", sim); }
+  function pintarModo() {
+    const b = $('#barra [data-acao="modo"]');
+    b.querySelector("use").setAttribute("href", S.modo === "toque" ? "#i-toque" : "#i-touchpad");
+    b.querySelector(".rot").textContent = S.modo === "toque" ? "Toque" : "Touchpad";
+    b.title = S.modo === "toque" ? "Modo toque direto (toque para trocar)" : "Modo touchpad (toque para trocar)";
+  }
+  function stats() {
+    const p = $("#pilula"), t = $("#pilula-txt");
+    if (!S.naSessao) return;
+    const parado = agora() - S.ultimoQuadro > 4000 && S.qps === 0;
+    const ms = S.rtt == null ? "—" : Math.round(S.rtt) + " ms";
+    t.textContent = ms;
+    p.className = !C.ativo ? "mal" : S.rtt != null && S.rtt > 160 ? "esp" : "ok";
+    $("#puxador-txt").textContent = ms;
+    $("#estat").textContent = [S.via === "tailscale" ? "via Tailscale" : S.via === "local" ? "rede de casa (sem cifra)" : S.via === "loopback" ? "este PC" : S.via,
+      S.fbW ? S.fbW + "×" + S.fbH : "", (parado ? 0 : S.qps) + " fps", ms, S.kbps + " kB/s"].filter(Boolean).join(" · ");
+  }
+  $$("#barra [data-acao]").forEach(b => b.addEventListener("click", () => {
+    agendar();
+    const a = b.dataset.acao;
+    if (a === "teclado") Teclado.alternar();
+    else if (a === "modo") {
+      S.modo = S.modo === "touchpad" ? "toque" : "touchpad"; guardar("modo", S.modo); pintarModo();
+      aviso(S.modo === "toque" ? "Toque direto: toque onde quer clicar." : "Touchpad: arraste para mover o cursor, toque para clicar.");
+    }
+    else if (a === "cheia") alternarTelaCheia();
+    else if (a === "sair") Sessao.sair();
+    else if (a === "recolher") recolher();
+    else Folhas.alternar(a);
+  }));
+  $("#pilula").onclick = () => Folhas.alternar("tela");
+  puxador.onclick = mostrar;
+  // o botão do teclado não pode tirar o foco do campo escondido (fecharia e reabriria o teclado)
+  const bTeclado = $('#barra [data-acao="teclado"]');
+  bTeclado.addEventListener("pointerdown", e => e.preventDefault());
+  bTeclado.addEventListener("mousedown", e => e.preventDefault());
+  pintarModo();
+  return { mostrar, recolher, agendar, tocouNaTela, marcar, stats, pintarModo };
+})();
+
+function alternarTelaCheia() {
+  const el = document.documentElement;
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else if (el.requestFullscreen) el.requestFullscreen({ navigationUI: "hide" }).catch(() => aviso("O navegador não deixou entrar em tela cheia."));
+  else aviso("Este navegador não tem tela cheia. Adicione à tela inicial para ganhar espaço.");
+}
+document.addEventListener("fullscreenchange", () => {
+  $('#barra [data-acao="cheia"] use').setAttribute("href", document.fullscreenElement ? "#i-sair-cheia" : "#i-cheia");
+});
+
+/* ---------------------------------------------------------------- folhas */
+const Folhas = (() => {
+  const fundo = $("#fundo-folha");
+  let atual = null;
+  const NOTAS = { nitida: "Melhor para ler texto. Gasta mais internet.", equilibrada: "Bom para quase tudo.",
+                  leve: "Para internet fraca (4G ruim, Wi-Fi longe)." };
+  function abrir(nome) {
+    fechar(true);
+    const f = $("#f-" + nome);
+    if (!f) return;
+    atual = nome;
+    $("#toast").classList.remove("visivel");
+    if (nome === "tela") pintarTela();
+    if (nome === "energia") pintarEnergia();
+    if (nome === "ajuda") pintarAjuda(S.modo);
+    fundo.hidden = false;
+    requestAnimationFrame(() => { fundo.classList.add("aberto"); f.classList.add("aberta"); });
+    Barra.marcar(nome, true);
+    Barra.mostrar();
+  }
+  function fechar(trocando) {
+    if (!atual) return;
+    const f = $("#f-" + atual);
+    f.classList.remove("aberta");
+    Barra.marcar(atual, false);
+    atual = null;
+    $("#confirmar").hidden = true;
+    if (!trocando) { fundo.classList.remove("aberto"); setTimeout(() => { if (!atual) fundo.hidden = true; }, 220); Barra.agendar(); }
+  }
+  function alternar(nome) { atual === nome ? fechar() : abrir(nome); }
+  fundo.addEventListener("click", () => fechar());
+  addEventListener("keydown", e => { if (e.key === "Escape" && atual) { fechar(); e.stopImmediatePropagation(); } }, true);
+
+  function monitores() {
+    const box = $("#monitores");
+    box.replaceChildren(...S.monitores.map(m => {
+      const b = document.createElement("button");
+      b.textContent = m.nome.replace(" (principal)", "") + " · " + m.w + "×" + m.h;
+      b.setAttribute("aria-pressed", m.i === S.monitor);
+      b.onclick = () => { S.monitor = m.i; enviar({ t: "mon", i: m.i }); Tela.reiniciarVista(); monitores(); };
+      return b;
+    }));
+    $("#bloco-monitores").hidden = S.monitores.length < 2;
+  }
+  function pintarTela() {
+    monitores();
+    $$("#qualidade button").forEach(b => b.setAttribute("aria-pressed", b.dataset.q === S.qualidade));
+    $("#qualidade-nota").textContent = NOTAS[S.qualidade] || "";
+    $$("#fluidez button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.fps === S.fps));
+    $("#velocidade").value = S.velocidade;
+    Barra.stats();
+  }
+  $$("#qualidade button").forEach(b => b.onclick = () => {
+    S.qualidade = b.dataset.q; guardar("qualidade", S.qualidade); enviar({ t: "cfg", qualidade: S.qualidade }); pintarTela();
+  });
+  $$("#fluidez button").forEach(b => b.onclick = () => {
+    S.fps = +b.dataset.fps; guardar("fps", String(S.fps)); enviar({ t: "cfg", fps: S.fps }); pintarTela();
+  });
+  $("#velocidade").addEventListener("input", e => { S.velocidade = +e.target.value; guardar("velocidade", String(S.velocidade)); });
+  $("#ajustar").onclick = () => { Tela.reiniciarVista(); fechar(); };
+
+  // energia
+  const TEXTOS = {
+    bloquear: ["Bloquear o PC? Daqui você não consegue desbloquear.", "Sim, bloquear"],
+    suspender: ["Suspender o PC? Para acordar, só no próprio PC.", "Sim, suspender"],
+    reiniciar: ["Reiniciar o PC? Programas abertos vão fechar (o Windows pergunta se quer salvar).", "Sim, reiniciar"],
+    desligar: ["Desligar o PC? Para ligar de novo, só no próprio PC.", "Sim, desligar"],
+  };
+  let pedido = null;
+  function pintarEnergia() {
+    $("#energia-botoes").hidden = !S.energia;
+    $("#energia-off").hidden = S.energia;
+    $("#energia-sub").hidden = !S.energia;
+    $("#confirmar").hidden = true;
+  }
+  $$("[data-energia]").forEach(b => b.onclick = () => {
+    pedido = b.dataset.energia;
+    $("#confirmar-txt").textContent = TEXTOS[pedido][0];
+    $("#confirmar-sim").textContent = TEXTOS[pedido][1];
+    $("#confirmar").hidden = false;
+  });
+  $("#confirmar-nao").onclick = () => { $("#confirmar").hidden = true; pedido = null; };
+  $("#confirmar-sim").onclick = () => { if (pedido) enviar({ t: "energia", acao: pedido }); pedido = null; fechar(); };
+
+  // copiar e colar
+  $("#clip-pegar").onclick = () => { $("#clip-status").textContent = "Pegando…"; enviar({ t: "clip_get" }); };
+  $("#clip-enviar").onclick = () => { $("#clip-status").textContent = "Enviando…"; enviar({ t: "clip_set", s: $("#area").value }); };
+  $("#clip-colar").onclick = () => { $("#clip-status").textContent = "Enviando…"; enviar({ t: "clip_set", s: $("#area").value, colar: true }); };
+  $("#clip-copiar").onclick = async () => {
+    const texto = $("#area").value;
+    try { await navigator.clipboard.writeText(texto); }
+    catch (e) { const a = $("#area"); a.focus(); a.select(); try { document.execCommand("copy"); } catch (_) {} a.blur(); }
+    $("#clip-status").textContent = "Copiado no tablet.";
+  };
+
+  // atalhos do Windows
+  const ATALHOS = [
+    ["Copiar", [0x11, 0x43], "Ctrl C"], ["Colar", [0x11, 0x56], "Ctrl V"], ["Recortar", [0x11, 0x58], "Ctrl X"],
+    ["Desfazer", [0x11, 0x5A], "Ctrl Z"], ["Refazer", [0x11, 0x59], "Ctrl Y"], ["Selecionar tudo", [0x11, 0x41], "Ctrl A"],
+    ["Salvar", [0x11, 0x53], "Ctrl S"], ["Procurar", [0x11, 0x46], "Ctrl F"], ["Trocar de janela", [0x12, 0x09], "Alt Tab"],
+    ["Fechar janela", [0x12, 0x73], "Alt F4"], ["Área de trabalho", [0x5B, 0x44], "Win D"], ["Menu Iniciar", [0x5B], "Win"],
+    ["Explorador de arquivos", [0x5B, 0x45], "Win E"], ["Executar", [0x5B, 0x52], "Win R"], ["Configurações", [0x5B, 0x49], "Win I"],
+    ["Recorte de tela", [0x5B, 0x10, 0x53], "Win Shift S"], ["Gerenciador de tarefas", [0x11, 0x10, 0x1B], "Ctrl Shift Esc"],
+    ["Emojis", [0x5B, 0xBE], "Win ."],
+  ];
+  $("#atalhos").append(...ATALHOS.map(([nome, vks, rot]) => {
+    const b = document.createElement("button");
+    b.className = "atalho";
+    const s = document.createElement("span"); s.textContent = nome;
+    const k = document.createElement("span");
+    rot.split(" ").forEach((t, i) => { if (i) k.append(" "); const kb = document.createElement("kbd"); kb.textContent = t; k.append(kb); });
+    b.append(s, k);
+    b.onclick = () => { enviar({ t: "atalho", vks }); vibrar(8); aviso(nome); };
+    return b;
+  }));
+
+  // gestos
+  function pintarAjuda(m) {
+    $$("#ajuda-modo button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === m));
+    $("#gestos-touchpad").hidden = m !== "touchpad";
+    $("#gestos-toque").hidden = m !== "toque";
+  }
+  $$("#ajuda-modo button").forEach(b => b.onclick = () => pintarAjuda(b.dataset.m));
+  return { abrir, fechar, alternar, monitores, aberta: () => !!atual };
+})();
+
+/* ---------------------------------------------------------------- faixa: tela bloqueada, desligamento */
+const Faixa = (() => {
+  const faixa = $("#faixa");
+  let tipoTela = null, energia = null, timer = 0;
+  function pintar() {
+    clearInterval(timer);
+    if (energia && energia.acao) {
+      const desenha = () => {
+        const s = Math.max(0, Math.round((energia.fim - Date.now()) / 1000));
+        const verbo = energia.acao === "desligar" ? "desligar" : "reiniciar";
+        faixa.className = "mal";
+        faixa.replaceChildren();
+        const t = document.createElement("span");
+        t.innerHTML = `<b>O PC vai ${verbo} em ${s} s.</b> `;
+        const b = document.createElement("button"); b.className = "btn-sec"; b.textContent = "Cancelar";
+        b.onclick = () => enviar({ t: "energia", acao: "cancelar" });
+        faixa.append(t, b); faixa.hidden = false;
+      };
+      desenha(); timer = setInterval(desenha, 500);
+      return;
+    }
+    if (tipoTela) {
+      faixa.className = tipoTela === "segura" ? "" : "mal";
+      faixa.innerHTML = tipoTela === "segura"
+        ? "<span><b>O PC está na tela de bloqueio ou num aviso do administrador.</b> Isso só dá para resolver no próprio PC.</span>"
+        : "<span><b>Não consegui ver a tela do PC.</b> Tentando de novo…</span>";
+      faixa.hidden = false;
+      return;
+    }
+    faixa.hidden = true;
+  }
+  return {
+    tela(tipo) { tipoTela = tipo; pintar(); },
+    energia(acao, em) {
+      if (!acao) { energia = null; aviso("Cancelado."); }
+      else if (acao === "bloquear" || acao === "suspender") { energia = null; aviso(acao === "bloquear" ? "Bloqueando o PC…" : "Suspendendo o PC…", 4000); }
+      else energia = { acao, fim: Date.now() + (em || 0) * 1000 };
+      pintar();
+    },
+    limpar() { tipoTela = null; energia = null; pintar(); },
+  };
+})();
+
+/* ---------------------------------------------------------------- sessão */
+const Sessao = (() => {
+  function cobertura(classe, titulo, texto, botoes) {
+    $("#cob-status").className = "status " + classe;
+    $("#cob-pc").textContent = S.pc;
+    $("#cob-tit").textContent = titulo;
+    $("#cob-txt").textContent = texto;
+    $("#cob-botoes").replaceChildren(...botoes.map(([rot, fn, sec]) => {
+      const b = document.createElement("button"); b.className = sec ? "btn-sec" : "btn"; b.textContent = rot; b.onclick = fn; return b;
+    }));
+    $("#cobertura").hidden = false;
+  }
+  function abrir() {
+    const primeira = !S.naSessao;
+    S.naSessao = true;
+    $("#cobertura").hidden = true;
+    if (primeira) {
+      $("#landing").classList.add("saindo");
+      Cursores.parar();
+      $("#sessao").hidden = false;
+      document.body.style.overflow = "hidden";
+      setTimeout(() => { $("#landing").hidden = true; }, 360);
+      Tela.reiniciarVista();
+      Faixa.limpar();
+      Barra.mostrar();
+      if (!ler("ajuda-vista")) {
+        guardar("ajuda-vista", "1");
+        setTimeout(() => aviso(S.modo === "toque" ? "Toque onde quer clicar · dois dedos rolam · três dedos abrem o teclado"
+                                                  : "Arraste para mover · toque para clicar · dois dedos rolam · três dedos abrem o teclado", 6500), 700);
+      }
+    }
+    Barra.stats();
+    Tela.pedir();
+  }
+  function reconectando() {
+    Teclado.soltarMods();
+    cobertura("esp", "Reconectando…", "A conexão caiu. Tentando de novo sozinho.", [["Sair", sair, true]]);
+  }
+  function encerrada(motivo) {
+    cobertura("", "Sessão encerrada", motivo, [["Conectar de novo", () => {
+      C.tchau = null; cobertura("esp", "Conectando…", "", [["Sair", sair, true]]); conectar();
+    }], ["Sair", sair, true]]);
+  }
+  function voltarParaEntrada() {
+    S.naSessao = false;
+    Folhas.fechar();
+    Teclado.fechar();
+    $("#cobertura").hidden = true;
+    $("#sessao").hidden = true;
+    document.body.style.overflow = "";
+    $("#landing").hidden = false;
+    requestAnimationFrame(() => $("#landing").classList.remove("saindo"));
+    Cursores.iniciar();
+  }
+  function sair() {
+    C.sair = true;
+    Teclado.soltarTudo(); Teclado.soltarMods();
+    const ws = C.ws; C.ws = null; C.ativo = false; Ping.parar();
+    clearTimeout(C.timer);
+    if (ws) try { ws.close(); } catch (e) {}
+    voltarParaEntrada();
+    Login.estado("saiu");
+  }
+  function voltarAoLogin() { voltarParaEntrada(); Login.estado("senha"); }
+  return { abrir, reconectando, encerrada, sair, voltarAoLogin };
+})();
+
+document.addEventListener("visibilitychange", () => {
+  if (S.naSessao) enviar({ t: "pausa", v: document.hidden });
+  if (document.hidden) Teclado.soltarTudo();
+});
+
+/* ---------------------------------------------------------------- começo */
+Login.estado("procurando");
+conectar();
+</script>
+</body>
+</html>
