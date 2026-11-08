@@ -147,7 +147,6 @@ class Tema {
       sliderTheme: SliderThemeData(activeTrackColor: primaria, thumbColor: primaria, inactiveTrackColor: c.borda),
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
         TargetPlatform.android: ZoomPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       }),
     );
   }
