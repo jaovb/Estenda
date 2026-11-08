@@ -21,6 +21,13 @@ if ($x -notmatch "usesCleartextTraffic") {
 $x = $x -replace 'android:label="[^"]*"', 'android:label="Estenda"'
 Set-Content $m $x -Encoding UTF8
 
+# o Kotlin se perde no cache incremental quando o projeto e o cache do Flutter ficam em discos
+# diferentes (C: e D:), o que acontece no GitHub e em muitos PCs: desliga só esse cache
+$gp = "android\gradle.properties"
+if ((Test-Path $gp) -and -not (Select-String -Path $gp -Pattern "kotlin.incremental" -Quiet)) {
+    Add-Content $gp "`nkotlin.incremental=false"
+}
+
 $icone = Join-Path $PSScriptRoot "..\interface\icone-512.png"
 if (-not (Test-Path $icone)) { $icone = Join-Path $PSScriptRoot "..\interface\icone.png" }
 if (Test-Path $icone) {
