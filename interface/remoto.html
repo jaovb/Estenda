@@ -748,7 +748,12 @@ const C = { ws: null, nonce: null, nonceUsado: true, senha: null, lembrar: true,
   const sala = location.hash.match(/[#&]s=([A-Za-z0-9_-]{16,64})/);
   if (sala) { try { localStorage.setItem("estenda.sala", sala[1]); } catch (_) {} }
   if (m) C.convite = m[1];
-  if (m || sala) history.replaceState(null, "", location.pathname + location.search);
+  // aberta pelo app Estenda: modo escolhido lá e a chave deste tablet que o app já tinha
+  const modo = location.hash.match(/[#&]modo=(segundo|espelho)/);
+  const api = location.hash.match(/[#&]api=([A-Za-z0-9_-]+)/), apt = location.hash.match(/[#&]apt=([A-Za-z0-9_-]+)/);
+  if (modo) C.modoSegundo = modo[1] === "segundo";
+  if (api && apt && !lerJSON("aparelho")) guardar("aparelho", { id: api[1], token: apt[1] });
+  if (m || sala || modo || api) history.replaceState(null, "", location.pathname + location.search);
 })();
 
 /* ---------------------------------------------------------------- de longe: canal WebRTC direto
@@ -932,6 +937,11 @@ function entrou(m) {
   if (m.aparelho) guardar("aparelho", m.aparelho);
   S.pc = m.pc || S.pc; S.monitores = m.monitores || []; S.monitor = m.monitor || 0;
   S.energia = !!m.energia; S.via = m.via || "";
+  if (C.modoSegundo) {  // modo Segundo monitor: a primeira tela que não é a principal
+    const extra = S.monitores.find(x => !x.principal);
+    if (extra && extra.i !== S.monitor) { S.monitor = extra.i; enviar({ t: "mon", i: extra.i }); }
+    else if (!extra) setTimeout(() => aviso("O PC ainda não tem uma tela extra: mostrando a tela principal.", 4200), 600);
+  }
   Sessao.abrir();
   enviar({ t: "cfg", qualidade: S.qualidade, fps: S.fps });
   if (document.hidden) enviar({ t: "pausa", v: true });

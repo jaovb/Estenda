@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../estado.dart';
-import '../sessao/sessao.dart';
+import '../sessao/sessao_web.dart';
 import '../tema.dart';
 import '../widgets/comuns.dart';
 import 'configuracoes.dart';
@@ -47,17 +47,8 @@ class _InicioPaginaState extends State<InicioPagina> with SingleTickerProviderSt
       if (pc == null || !mounted) return;
     }
     final escolhido = pc;
-    await Navigator.of(context).push(PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 520),
-      reverseTransitionDuration: const Duration(milliseconds: 380),
-      pageBuilder: (_, __, ___) => SessaoPagina(app: est, pc: escolhido, segundoMonitor: segundo),
-      transitionsBuilder: (_, a, __, filho) {
-        final curva = CurvedAnimation(parent: a, curve: Curves.easeOutCubic);
-        return FadeTransition(
-          opacity: curva,
-          child: ScaleTransition(scale: Tween(begin: 0.96, end: 1.0).animate(curva), child: filho),
-        );
-      },
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => SessaoWebPagina(app: est, pc: escolhido, segundoMonitor: segundo),
     ));
   }
 
