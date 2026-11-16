@@ -264,8 +264,13 @@ async def teste_completo(args):
 
             # ---- H. desligar "de longe" no PC derruba quem está de longe e apaga o segredo do tablet ao entrar em casa
             pc.api("/api/config", {"longe": False})
-            await pg.wait_for_timeout(2500)
-            conferir(await pg.is_visible("#cobertura"), "H. PC desligou o de longe: a sessão de longe cai", (await pg.inner_text("#cob-txt")).strip()[:80])
+            try:  # a sessão de longe tem que cair (a página pode logo tentar de novo, então vale o primeiro sinal)
+                await pg.wait_for_function("() => !C.ativo || !document.querySelector('#cobertura').hidden", timeout=10000)
+                caiu = True
+            except Exception:
+                caiu = False
+            e = pc.api("/api/estado")
+            conferir(caiu and not any(x["tipo"] == "p2p" for x in e["sessoes"]), "H. PC desligou o de longe: a sessão de longe cai")
             await pg.context.close()
             pg = await abrir(nav, pagina, modo="espelho", **cred)
             est = await esperar_sessao(pg)

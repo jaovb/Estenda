@@ -6,7 +6,7 @@ name: App do tablet
 on:
   workflow_dispatch:
   push:
-    paths: ["app_tablet/**", "interface/icone-512.png", ".github/workflows/app-tablet.yml"]
+    paths: ["app_tablet/**", "interface/remoto.html", "interface/base.js", "interface/icone-*.png", ".github/workflows/app-tablet.yml"]
 
 permissions:
   contents: write   # para publicar o APK em Releases
