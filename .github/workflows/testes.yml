@@ -103,7 +103,11 @@ jobs:
           path: testes/saida/
 
   duas-redes-pc:
-    name: Duas redes · PC (Linux)
+    strategy:
+      fail-fast: false
+      matrix:
+        par: [1, 2, 3]
+    name: Duas redes · PC (Linux) ${{ matrix.par }}
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -112,10 +116,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow playwright
-      - run: python testes/e2e.py --papel pc --segredo $SEGREDO --senha $SENHA --espera 420
+      - run: python testes/e2e.py --papel pc --segredo $SEGREDO-${{ matrix.par }} --senha $SENHA --espera 480
 
   duas-redes-tablet:
-    name: Duas redes · tablet (macOS, outra rede)
+    strategy:
+      fail-fast: false
+      matrix:
+        par: [1, 2, 3]
+    name: Duas redes · tablet (macOS) ${{ matrix.par }}
     runs-on: macos-latest
     continue-on-error: true
     steps:
@@ -124,9 +132,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow playwright
-      - run: python testes/e2e.py --papel tablet --segredo $SEGREDO --senha $SENHA --espera 400
+      - run: python testes/e2e.py --papel tablet --segredo $SEGREDO-${{ matrix.par }} --senha $SENHA --espera 420
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: telas-duas-redes
+          name: telas-duas-redes-${{ matrix.par }}
           path: testes/saida/

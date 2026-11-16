@@ -328,7 +328,7 @@ async def papel_tablet(args):
         while time.time() < fim and not est:
             n += 1
             pg = await abrir(nav, pagina, app="1", pc="10.255.255.1:24860", modo="espelho", so="longe", ls=args.segredo, senha=args.senha, pcid=ID_PC)
-            est = await esperar_sessao(pg, 35)
+            est = await esperar_sessao(pg, 55)
             if not est:
                 ult = (await msgs(pg, "estado")) or [{}]
                 print(f"tentativa {n}: {await pg.inner_text('#pc-texto')} | diag: {json.dumps(ult[-1].get('diag'))}", flush=True)

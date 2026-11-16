@@ -228,7 +228,7 @@ const Base = (() => {
   /* ---------------------------------------------------------------- WebRTC: utilidades */
   // pontos de encontro usados quando o PC não informou outros (a mesma lista do comum.py)
   const ENCONTROS = ["wss://broker.emqx.io:8084/mqtt", "wss://broker.hivemq.com:8884/mqtt", "wss://test.mosquitto.org:8081/mqtt"];
-  const ICE = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] }];
+  const ICE = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }];
   function impressao(sdp) {
     const m = /a=fingerprint:(\S+) ([0-9A-Fa-f:]+)/.exec(sdp || "");
     return m ? m[1].toLowerCase() + " " + m[2].toUpperCase() : "";

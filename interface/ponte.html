@@ -69,7 +69,7 @@ async function oferta(m) {
   pc.oniceconnectionstatechange = () => { D.ice.push(pc.iceConnectionState); contar(); };
   const par = { pc, n: m.n, dc: null, local: null, fila: [], partes: [], ice: [], remoto: false, resposta: null };
   pares.set(id, par);
-  par.limite = setTimeout(() => { if (!par.local) fecharPar(id); }, 35000);
+  par.limite = setTimeout(() => { if (!par.local) fecharPar(id); }, 55000);
   pc.onconnectionstatechange = () => { if (["failed", "closed"].includes(pc.connectionState) && pares.get(id) === par) fecharPar(id); };
   pc.ondatachannel = e => {
     const dc = par.dc = e.channel;

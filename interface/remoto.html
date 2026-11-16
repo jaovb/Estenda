@@ -616,6 +616,10 @@ class CanalP2P {
         this.aceita = true;
         await this.pc.setRemoteDescription({ type: "answer", sdp: m.sdp });
         this.respondeu = true;
+        // o PC respondeu: agora é só o furo nos roteadores, que pode levar mais tempo (o próprio
+        // WebRTC desiste sozinho, com "failed", se não houver caminho)
+        clearTimeout(this.limite);
+        this.limite = setTimeout(() => { this.motivo = this.motivo || "sem-caminho"; this.close(); }, 45000);
         for (const c of this.ice.splice(0)) this.pc.addIceCandidate(c).catch(() => {});
       } else if (m.t === "ice" && m.c) {
         if (this.respondeu) this.pc.addIceCandidate(m.c).catch(() => {}); else this.ice.push(m.c);
