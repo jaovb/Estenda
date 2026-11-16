@@ -13,7 +13,16 @@ import threading
 import time
 from pathlib import Path
 
-VERSAO = "1.8"
+VERSAO = "2.0"
+# Pontos de encontro: servidores públicos de recados (MQTT sobre WebSocket). Servem só para o tablet
+# e o PC trocarem a "oferta" e a "resposta" do WebRTC quando estão em redes diferentes. Os recados vão
+# cifrados com um segredo que só aparelhos já pareados conhecem; a imagem e o controle vão direto.
+ENCONTROS = [u.strip() for u in os.environ.get("PONTE_REMOTA_ENCONTROS", "").split(",") if u.strip()] or [
+    "wss://broker.emqx.io:8084/mqtt",
+    "wss://broker.hivemq.com:8884/mqtt",
+    "wss://test.mosquitto.org:8081/mqtt",
+]
+URL_APP = "https://github.com/jaovb/Estenda/releases/latest/download/Estenda.apk"
 PROTOCOLO = 1
 PORTA_PADRAO = 24860
 PASTA = Path(os.environ.get("PONTE_REMOTA_CONFIG") or Path.home() / ".ponte-remota")

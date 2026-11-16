@@ -47,8 +47,7 @@ ARQUIVOS = {
     "/icone-512.png": ("icone-512.png", "image/png"),
     "/icone-mascara.png": ("icone-mascara.png", "image/png"),
     "/icone-apple.png": ("icone-apple.png", "image/png"),
-    "/fontes/SpaceGrotesk.ttf": ("fontes/SpaceGrotesk.ttf", "font/ttf"),
-    "/fontes/JetBrainsMono.ttf": ("fontes/JetBrainsMono.ttf", "font/ttf"),
+    "/base.js": ("base.js", "text/javascript; charset=utf-8"),
 }
 TEXTO_HTTP = {200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found", 405: "Method Not Allowed"}
 
@@ -259,6 +258,8 @@ class ServidorRemoto:
         self.lock = threading.Lock()
         self.ao_fim_sessao = None  # chamado com a duração (s) de cada sessão, para o "uso na semana"
         self.token_ponte = None    # a ponte WebRTC (navegador sem janela, neste PC) entra em /ws-ponte com ele
+        self.id_pc = ""            # id público deste PC (vai no "ola"): o tablet confere se é o PC que ele salvou
+        self.longe_info = None     # função que devolve {"s": segredo, "e": [pontos de encontro]} ou None
 
     # --- ligar / desligar (chamados pelo painel, de outra linha de execução)
     @property
@@ -385,7 +386,7 @@ class ServidorRemoto:
         if tipo in ("loopback", "tailscale"):
             return True
         if tipo == "p2p":  # de longe, pela ponte WebRTC: só com o ponto de encontro configurado
-            return bool(self.cfg().get("encontro"))
+            return bool(self.cfg().get("longe"))
         return tipo == "local" and not self.cfg().get("so_tailscale")
 
     def _avisar_uma_vez(self, ip: str, texto: str) -> None:
@@ -456,8 +457,8 @@ class ServidorRemoto:
             return await self._responder(writer, 405, b"", "text/plain")
         if caminho == "/manifest.webmanifest":
             corpo = json.dumps({"name": f"Estenda · {self.nome_pc}", "short_name": self.nome_pc,
-                                "start_url": "/", "display": "fullscreen", "background_color": "#1b1f24",
-                                "theme_color": "#1b1f24",
+                                "start_url": "/", "display": "fullscreen", "background_color": "#1a1a2e",
+                                "theme_color": "#1a1a2e",
                                 "icons": [{"src": "/icone-192.png", "sizes": "192x192", "type": "image/png"},
                                           {"src": "/icone-512.png", "sizes": "512x512", "type": "image/png"}]},
                                ensure_ascii=False).encode()
@@ -480,7 +481,7 @@ class ServidorRemoto:
                 corpo = (self.pasta / nome).read_bytes()
             except OSError:
                 return await self._responder(writer, 404, b"", "text/plain")
-            extra = {"Cache-Control": "max-age=86400"} if caminho.startswith("/fontes/") else None
+            extra = {"Cache-Control": "max-age=86400"} if caminho.startswith("/icone") else None
             return await self._responder(writer, 200, corpo, tipo_arq, extra, so_cabecalho=metodo == "HEAD")
         return await self._responder(writer, 404, b"", "text/plain")
 
@@ -488,7 +489,10 @@ class ServidorRemoto:
                          checar_origem: bool = True) -> None:
         chave = headers.get("sec-websocket-key", "")
         origem = headers.get("origin")
-        if checar_origem and origem and origem.split("://", 1)[-1].rstrip("/") != headers.get("host", ""):
+        # só a própria página deste servidor ou a que vem embutida no app Estenda (servida em 127.0.0.1 no tablet)
+        casa = origem.split("://", 1)[-1].rstrip("/") if origem else ""
+        if checar_origem and origem and casa != headers.get("host", "") \
+                and casa.rsplit(":", 1)[0] not in ("127.0.0.1", "localhost"):
             self._avisar_uma_vez(ip, f"recusado: conexão de outra página ({origem})")
             return await self._responder(writer, 403, b"", "text/plain")
         if not chave or headers.get("sec-websocket-version") != "13":
@@ -561,7 +565,8 @@ class ServidorRemoto:
 
     async def _sessao(self, ws: WebSocket, ip: str, tipo: str, vinculo: bytes = b"") -> None:
         nonce = secrets.token_bytes(16)
-        await ws.enviar_json({"t": "ola", "pc": self.nome_pc, "nonce": _b64(nonce), "v": comum.PROTOCOLO})
+        await ws.enviar_json({"t": "ola", "pc": self.nome_pc, "nonce": _b64(nonce), "v": comum.PROTOCOLO,
+                              "id": self.id_pc})
         try:
             msg = await asyncio.wait_for(ws.receber_json(), TEMPO_LOGIN)
         except asyncio.TimeoutError:
@@ -697,7 +702,8 @@ class Sessao:
         await self.enviar({"t": "bem_vindo", "pc": self.srv.nome_pc, "sessao": self.id,
                            "monitores": controle.nomes_monitores(self.mons), "monitor": self.monitor,
                            "energia": bool(self.srv.cfg().get("permitir_energia", True)),
-                           "aparelho": aparelho_novo, "via": self.tipo})
+                           "aparelho": aparelho_novo, "via": self.tipo,
+                           "longe": self.srv.longe_info() if self.srv.longe_info else None})
         if self.srv.energia:
             acao, prazo, _ = self.srv.energia
             await self.enviar({"t": "energia", "acao": acao, "em": max(0, round(prazo - time.time()))})

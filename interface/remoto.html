@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#1b1f24">
+<meta name="theme-color" content="#1a1a2e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Estenda">
@@ -13,37 +13,42 @@
 <link rel="apple-touch-icon" href="/icone-apple.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <style>
-@font-face { font-family: "Space Grotesk"; src: url("/fontes/SpaceGrotesk.ttf") format("truetype"); font-weight: 300 700; font-display: swap; }
-@font-face { font-family: "JetBrains Mono"; src: url("/fontes/JetBrainsMono.ttf") format("truetype"); font-weight: 100 800; font-display: swap; }
 :root, :root[data-theme="dark"] {
-  /* mesmas cores da Ponte KVM: grafite azulado, texto quebrado, verde-sálvia */
-  --bg: #1b1f24; --surface: #22272d; --surface-2: #2a3037; --code: #181b20;
-  --border: #323940; --border-strong: #434b54;
-  --text: #d9ddd7; --muted: #9ca39e; --faint: #6f7772;
-  --accent: #8cc7b5; --accent-ink: #172320; --accent-soft: rgba(140, 199, 181, .11); --accent-glow: rgba(140, 199, 181, .28);
-  --warn: #dfb877; --warn-soft: rgba(223, 184, 119, .09);
-  --bad: #e39f93; --bad-soft: rgba(227, 159, 147, .09);
-  --tela: #121518; --sombra: 0 10px 32px rgba(0, 0, 0, .38);
+  /* Estenda: fundo azul-noite e acentos em pastel (as mesmas cores do app e do painel do PC) */
+  --bg: #1a1a2e; --surface: #23233b; --surface-2: #2c2c47; --code: #1f1f36;
+  --border: #36365a; --border-strong: #4a4a75;
+  --text: #e9e8f2; --muted: #a4a3c0; --faint: #747396;
+  --accent: #c9b8e8; --accent-ink: #1a1a2e; --accent-soft: rgba(201, 184, 232, .13); --accent-glow: rgba(201, 184, 232, .3);
+  --ok: #a8e6cf; --ok-soft: rgba(168, 230, 207, .16);
+  --warn: #ffcfae; --warn-soft: rgba(255, 207, 174, .1);
+  --bad: #f4a9a2; --bad-soft: rgba(244, 169, 162, .1);
+  --azul: #2e3653; --azul-f: #a9c8ec; --menta: #2c3b48; --menta-f: #a8e6cf;
+  --lavanda: #35324f; --lavanda-f: #c9b8e8; --pessego: #3a3343; --pessego-f: #ffcfae;
+  --tela: #121222; --sombra: 0 12px 30px -12px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .25);
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --bg: #f2eee5; --surface: #f9f6ef; --surface-2: #e9e4d8; --code: #ebe6da;
-  --border: #dcd5c5; --border-strong: #c8c0ae;
-  --text: #30353a; --muted: #676d6a; --faint: #979a93;
-  --accent: #457e6e; --accent-ink: #f8f6f0; --accent-soft: rgba(69, 126, 110, .1); --accent-glow: rgba(69, 126, 110, .25);
-  --warn: #9a6d24; --warn-soft: rgba(154, 109, 36, .09);
-  --bad: #ad5246; --bad-soft: rgba(173, 82, 70, .08);
-  --tela: #dcd6c9; --sombra: 0 10px 28px rgba(48, 53, 58, .18);
+  --bg: #f6f7fb; --surface: #ffffff; --surface-2: #f0f1f7; --code: #f3f4f9;
+  --border: #e6e8f0; --border-strong: #d3d6e2;
+  --text: #1f2330; --muted: #5f6475; --faint: #9a9eae;
+  --accent: #6b5aa6; --accent-ink: #ffffff; --accent-soft: rgba(107, 90, 166, .1); --accent-glow: rgba(107, 90, 166, .25);
+  --ok: #2e7d5b; --ok-soft: rgba(46, 125, 91, .14);
+  --warn: #b4693c; --warn-soft: rgba(180, 105, 60, .09);
+  --bad: #b3463e; --bad-soft: rgba(179, 70, 62, .08);
+  --azul: #d6e6f8; --azul-f: #2f6ea5; --menta: #d5f3e6; --menta-f: #2e7d5b;
+  --lavanda: #e6def6; --lavanda-f: #6b5aa6; --pessego: #ffe6d5; --pessego-f: #b4693c;
+  --tela: #e3e6f0; --sombra: 0 10px 28px -10px rgba(59, 64, 96, .2), 0 2px 6px rgba(59, 64, 96, .06);
   color-scheme: light;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; height: 100%; overscroll-behavior: none; }
 body {
   background: var(--bg); color: var(--text);
-  font: 15px/1.55 "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font: 15px/1.55 "Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased; transition: background .25s, color .25s;
 }
-.mono, code, kbd, input, textarea { font-family: "JetBrains Mono", ui-monospace, Consolas, "SF Mono", monospace; }
+.mono, code, kbd { font-family: ui-monospace, "Roboto Mono", Consolas, "SF Mono", monospace; }
+input, textarea { font-family: inherit; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 [hidden] { display: none !important; }
@@ -54,30 +59,34 @@ svg.i { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-widt
 #landing {
   position: fixed; inset: 0; overflow-y: auto; overscroll-behavior: contain;
   display: grid; place-items: center; text-align: center;
-  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
   transition: opacity .35s, transform .35s;
 }
 #landing.saindo { opacity: 0; transform: scale(.98); pointer-events: none; }
-#cursores { position: fixed; inset: 0; width: 100%; height: 100%; }
-.heroi { position: relative; width: 100%; max-width: 560px; }
-.etiqueta { font-family: "JetBrains Mono", monospace; color: var(--accent); font-size: 13px; margin-bottom: 12px; }
-#titulo {
-  font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
-  font-weight: 700; font-size: clamp(30px, 6vw, 46px); line-height: 1.12; letter-spacing: -.01em;
-  margin: 0 auto 14px; max-width: 14ch; min-height: 2.3em;
+.heroi { position: relative; width: 100%; max-width: 440px; animation: surgir .55s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes surgir { from { opacity: 0; transform: translateY(12px); } }
+.marca { display: inline-flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 20px; }
+.logo { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, #c9b8e8, #a8e6cf); color: #23263a; }
+#titulo { font-size: clamp(21px, 4vw, 26px); font-weight: 700; line-height: 1.25; letter-spacing: -.01em; margin: 0 0 6px; }
+.heroi > .sub { color: var(--muted); font-size: 15px; max-width: 380px; margin: 0 auto 18px; }
+.modo-chip {
+  display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 7px; margin-bottom: 16px; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--sombra); font-weight: 600; font-size: 14px;
 }
-.bloco { display: inline-block; width: .52em; height: 1em; margin-left: .06em; vertical-align: -.12em; background: var(--accent); animation: piscar 1.05s steps(1) infinite; }
-.bloco.digitando { animation: none; }
-@keyframes piscar { 50% { opacity: 0; } }
-.heroi > p { color: var(--muted); font-size: 16px; max-width: 420px; margin: 0 auto 22px; }
-#tema { position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 2; border: 1px solid var(--border-strong); background: color-mix(in srgb, var(--bg) 80%, transparent); color: var(--muted); border-radius: 999px; padding: 5px 14px; font-size: 14px; }
+.modo-chip .q { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: var(--menta); color: var(--menta-f); }
+.modo-chip.az .q { background: var(--azul); color: var(--azul-f); }
+#tema {
+  position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 2; width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; border: 1px solid var(--border); background: var(--surface); color: var(--text); box-shadow: var(--sombra);
+}
+#tema:active { transform: scale(.92); }
 
-.cartao { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.cartao { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 22px; box-shadow: var(--sombra); }
 .login { text-align: left; max-width: 420px; margin: 0 auto; box-shadow: var(--sombra); }
 .login .pc { margin-bottom: 14px; }
 label.campo { display: block; font-size: 14px; color: var(--muted); }
 label.campo input {
-  display: block; width: 100%; margin-top: 6px; height: 48px; border-radius: 10px; border: 1px solid var(--border);
+  display: block; width: 100%; margin-top: 6px; height: 50px; border-radius: 14px; border: 1px solid var(--border);
   background: var(--code); color: var(--text); padding: 0 14px; font-size: 17px; letter-spacing: .04em;
 }
 label.campo input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -85,25 +94,23 @@ label.campo input::placeholder { color: var(--faint); }
 .check { display: flex; align-items: center; gap: 10px; font-size: 14px; margin: 14px 0 18px; color: var(--text); }
 .check input { width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
 .btn-grande {
-  background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px;
-  padding: 15px 36px; font-weight: 700; font-size: 17px; transition: transform .15s, filter .15s;
+  background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 16px;
+  padding: 15px 36px; font-weight: 700; font-size: 16.5px; transition: transform .15s, filter .15s;
 }
 .btn-grande:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.btn-grande:active, .btn:active, .btn-sec:active { transform: scale(.97); }
 .largo { width: 100%; }
-.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px; padding: 11px 22px; font-weight: 700; font-size: 15px; }
-.btn-sec { background: none; color: var(--text); border: 1px solid var(--border-strong); border-radius: 999px; padding: 10px 20px; font-weight: 600; font-size: 15px; }
+.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 14px; padding: 11px 20px; font-weight: 700; font-size: 15px; }
+.btn-sec { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 14px; padding: 10px 18px; font-weight: 600; font-size: 15px; }
 .btn-sec:hover:not(:disabled) { border-color: var(--muted); }
-.btn-perigo { background: var(--bad); color: #1d1312; border: 0; border-radius: 999px; padding: 11px 22px; font-weight: 700; font-size: 15px; }
+.btn-perigo { background: var(--bad); color: var(--accent-ink); border: 0; border-radius: 14px; padding: 11px 20px; font-weight: 700; font-size: 15px; }
 .link { background: none; border: 0; padding: 6px 0; color: var(--accent); font-size: 14px; margin-top: 12px; }
 .erro { color: var(--bad); font-size: 14px; margin: 12px 0 0; }
 .erro:empty { display: none; }
 .dica-pe { color: var(--faint); font-size: 13px; margin: 18px auto 0; max-width: 420px; }
-.instalar { margin: 16px auto 0; max-width: 420px; text-align: center; }
-.instalar p { color: var(--muted, var(--faint)); font-size: 14px; margin: 8px 0 0; }
-
 .status { display: inline-flex; align-items: center; gap: 9px; font-size: 14px; color: var(--muted); }
 .status .pt { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); flex: none; }
-.status.ok { color: var(--text); } .status.ok .pt { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.status.ok { color: var(--text); } .status.ok .pt { background: var(--ok); box-shadow: 0 0 0 4px var(--ok-soft); }
 .status.esp .pt { background: var(--warn); animation: pulsar 1.1s ease-in-out infinite; }
 .status.mal { color: var(--bad); } .status.mal .pt { background: var(--bad); }
 @keyframes pulsar { 50% { opacity: .3; } }
@@ -135,17 +142,17 @@ label.campo input::placeholder { color: var(--faint); }
 #barra .ic .rot { display: none; }
 @media (min-width: 1180px) { #barra .ic .rot { display: inline; } }
 .sep { width: 1px; height: 22px; background: var(--border); margin: 0 3px; flex: none; }
-#pilula { display: inline-flex; align-items: center; gap: 7px; padding: 0 10px 0 12px; height: 40px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted); background: none; border: 0; border-radius: 999px; flex: none; }
+#pilula { display: inline-flex; align-items: center; gap: 7px; padding: 0 10px 0 12px; height: 40px; font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--muted); background: none; border: 0; border-radius: 999px; flex: none; }
 #pilula .pt { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
-#pilula.ok .pt { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+#pilula.ok .pt { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
 #pilula.esp .pt { background: var(--warn); } #pilula.mal .pt { background: var(--bad); }
 #puxador {
   position: fixed; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 33;
   display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; border-radius: 999px;
   background: color-mix(in srgb, var(--surface) 80%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--border); color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 12px; opacity: .85;
+  border: 1px solid var(--border); color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; opacity: .85;
 }
-#puxador .pt { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+#puxador .pt { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
 #puxador svg.i { width: 15px; height: 15px; }
 
 /* faixa de aviso (tela bloqueada, desligamento) */
@@ -178,9 +185,9 @@ body.teclado-aberto #toast { bottom: 72px; }
 }
 #barra-teclado::-webkit-scrollbar { display: none; }
 .tecla {
-  height: 42px; min-width: 46px; padding: 0 11px; border-radius: 10px; flex: none;
+  height: 42px; min-width: 46px; padding: 0 11px; border-radius: 12px; flex: none;
   background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
-  font: 500 13.5px "JetBrains Mono", ui-monospace, monospace; box-shadow: 0 1px 0 var(--border-strong); touch-action: manipulation;
+  font: 600 13.5px inherit; font-family: inherit; box-shadow: 0 1px 0 var(--border-strong); touch-action: manipulation;
 }
 .tecla:active { transform: translateY(1px); box-shadow: none; }
 .tecla.m1 { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
@@ -194,14 +201,14 @@ body.teclado-aberto #toast { bottom: 72px; }
 .folha {
   position: fixed; z-index: 31; left: 50%; bottom: 0; width: min(580px, 100vw); transform: translate(-50%, 104%);
   transition: transform .3s cubic-bezier(.2, .8, .2, 1); background: var(--surface); border: 1px solid var(--border); border-bottom: 0;
-  border-radius: 20px 20px 0 0; padding: 8px 18px calc(20px + env(safe-area-inset-bottom)); max-height: 82%; overflow-y: auto;
+  border-radius: 28px 28px 0 0; padding: 8px 20px calc(20px + env(safe-area-inset-bottom)); max-height: 82%; overflow-y: auto;
   box-shadow: 0 -12px 40px rgba(0, 0, 0, .35); overscroll-behavior: contain;
 }
 .folha.aberta { transform: translate(-50%, 0); }
 .alca { width: 42px; height: 4px; border-radius: 4px; background: var(--border-strong); margin: 4px auto 14px; }
 .folha h2 { font-size: 20px; margin: 0 0 2px; letter-spacing: -.01em; }
 .folha .sub { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
-.grupo { font-family: "JetBrains Mono", monospace; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 18px 0 8px; }
+.grupo { font-size: 13px; font-weight: 700; color: var(--muted); margin: 18px 2px 8px; }
 .grade-teclas { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px; }
 .grade-teclas .tecla { width: 100%; }
 .atalhos { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
@@ -211,9 +218,9 @@ body.teclado-aberto #toast { bottom: 72px; }
 }
 .atalho:active { border-color: var(--accent); }
 kbd { font-size: 11.5px; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 5px; padding: 1px 6px; box-shadow: 0 1px 0 var(--border-strong); color: var(--text); white-space: nowrap; }
-.segmentos { display: flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px; width: fit-content; max-width: 100%; overflow-x: auto; }
-.segmentos button { border: 1px solid transparent; background: none; color: var(--muted); padding: 6px 16px; border-radius: 999px; font-size: 14px; white-space: nowrap; }
-.segmentos button[aria-pressed="true"] { background: var(--bg); color: var(--text); border-color: var(--border); }
+.segmentos { display: flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 4px; width: fit-content; max-width: 100%; overflow-x: auto; }
+.segmentos button { border: 1px solid transparent; background: none; color: var(--muted); padding: 7px 16px; border-radius: 11px; font-weight: 600; font-size: 14px; white-space: nowrap; }
+.segmentos button[aria-pressed="true"] { background: var(--surface); color: var(--text); border-color: var(--border); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
 .nota { color: var(--muted); font-size: 13.5px; margin: 8px 0 0; }
 .linha-botoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 textarea.area {
@@ -222,7 +229,7 @@ textarea.area {
 }
 textarea.area:focus { border-color: var(--accent); outline: none; }
 input[type=range] { width: 100%; accent-color: var(--accent); }
-.estat { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted); background: var(--code); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+.estat { font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--muted); background: var(--code); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
 .energia { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .energia > button {
   text-align: left; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 6px;
@@ -250,6 +257,10 @@ table.gestos td:first-child { color: var(--muted); width: 44%; padding-right: 12
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-troca" viewBox="0 0 24 24"><path d="M4 8h14l-4-4M20 16H6l4 4"/></symbol>
+  <symbol id="i-tema" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></symbol>
+  <symbol id="i-monitor-celular" viewBox="0 0 24 24"><rect x="2" y="4" width="14" height="10" rx="2"/><path d="M6 18h6M9 14v4"/><rect x="17" y="8" width="5" height="10" rx="1.5"/></symbol>
+  <symbol id="i-copia" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
   <symbol id="i-teclado" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/></symbol>
   <symbol id="i-touchpad" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="M4 15h16M12 15v5.5"/></symbol>
   <symbol id="i-toque" viewBox="0 0 24 24"><path d="M9 11.5V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 10a1.5 1.5 0 0 1 3 0v1.5"/><path d="M15 11a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3l-2.3-3a1.6 1.6 0 0 1 2.4-2.1L9 15.4"/></symbol>
@@ -270,12 +281,12 @@ table.gestos td:first-child { color: var(--muted); width: 44%; padding-right: 12
 
 <!-- ============================================================ entrada -->
 <section id="landing">
-  <canvas id="cursores" aria-hidden="true"></canvas>
-  <button id="tema">☀ Claro</button>
+  <button id="tema" title="Tema claro ou escuro" aria-label="Trocar o tema"><svg class="i"><use href="#i-tema"/></svg></button>
   <div class="heroi">
-    <div class="etiqueta">⇄ Ponte Remota</div>
-    <h1 id="titulo" aria-label="Seu PC, de qualquer lugar."><span id="digitado" aria-hidden="true"></span><span class="bloco" aria-hidden="true"></span></h1>
-    <p>Toque, arraste e digite como se estivesse na frente do computador.</p>
+    <div class="marca"><span class="logo"><svg class="i"><use href="#i-troca"/></svg></span>Estenda</div>
+    <h1 id="titulo">Olá! Vamos conectar ao seu PC</h1>
+    <p class="sub">Toque, arraste e digite como se estivesse na frente do computador.</p>
+    <div class="modo-chip" id="modo-chip" hidden><span class="q"><svg class="i"><use href="#i-copia"/></svg></span><span id="modo-chip-txt">Espelhamento</span></div>
     <div class="cartao login" id="login">
       <div class="pc"><span class="status esp" id="pc-status"><span class="pt"></span><span id="pc-texto">Procurando o PC…</span></span></div>
       <form id="form-senha" hidden autocomplete="off">
@@ -292,10 +303,7 @@ table.gestos td:first-child { color: var(--muted); width: 44%; padding-right: 12
       <p class="erro" id="erro"></p>
     </div>
     <p class="dica-pe" id="dica-pe">No PC, abra o Estenda e ligue o acesso. A senha e o QR aparecem lá.</p>
-    <div class="instalar" id="instalar" hidden>
-      <button class="btn" id="instalar-btn">Instalar o app Estenda</button>
-      <p id="instalar-ios" hidden>Para ter como app no iPhone/iPad: toque em <b>Compartilhar</b> (o quadrado com a seta) e em <b>Adicionar à Tela de Início</b>.</p>
-    </div>
+    <button class="link" id="voltar-app" hidden>Voltar</button>
   </div>
 </section>
 
@@ -319,7 +327,7 @@ table.gestos td:first-child { color: var(--muted); width: 44%; padding-right: 12
     <button class="ic" data-acao="sair" title="Sair"><svg class="i"><use href="#i-sair"/></svg></button>
     <button class="ic" data-acao="recolher" title="Esconder a barra"><svg class="i"><use href="#i-cima"/></svg></button>
   </nav>
-  <button id="puxador" hidden aria-label="Mostrar a barra"><span class="pt"></span><span id="puxador-txt">ponte</span><svg class="i"><use href="#i-baixo"/></svg></button>
+  <button id="puxador" hidden aria-label="Mostrar a barra"><span class="pt"></span><span id="puxador-txt">Estenda</span><svg class="i"><use href="#i-baixo"/></svg></button>
   <div id="faixa" hidden></div>
   <div id="barra-teclado" hidden></div>
 
@@ -398,7 +406,7 @@ table.gestos td:first-child { color: var(--muted); width: 44%; padding-right: 12
         <button class="btn-sec" id="confirmar-nao">Cancelar</button>
       </div>
     </div>
-    <p class="nota" id="energia-off" hidden>Desligar e reiniciar pelo tablet estão desativados no PC (Ponte Remota → Opções).</p>
+    <p class="nota" id="energia-off" hidden>Desligar e reiniciar pelo tablet estão desativados no PC (Estenda › Configurações).</p>
   </section>
 
   <!-- gestos -->
@@ -438,11 +446,19 @@ table.gestos td:first-child { color: var(--muted); width: 44%; padding-right: 12
 
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script src="base.js"></script>
 <script>
 "use strict";
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-const PREF = "pr." + location.host + ".";
+/* O app Estenda abre esta mesma página (embutida nele) e diz, depois do #, com qual PC falar. */
+const P = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+const NO_APP = P.app === "1";
+const ALVO = (NO_APP && P.pc) || location.host;  // "endereço:porta" do PC
+const PREF = "pr." + ALVO + ".";
+function paraApp(obj) { try { if (window.EstendaApp) window.EstendaApp.postMessage(JSON.stringify(obj)); } catch (e) {} }
+addEventListener("error", e => paraApp({ t: "erro", m: String(e.message || e).slice(0, 300) }));
+let QUADROS = 0;
 function guardar(k, v) { try { localStorage.setItem(PREF + k, typeof v === "string" ? v : JSON.stringify(v)); } catch (e) {} }
 function ler(k, padrao = null) { try { const v = localStorage.getItem(PREF + k); return v === null ? padrao : v; } catch (e) { return padrao; } }
 function lerJSON(k) { try { return JSON.parse(ler(k)); } catch (e) { return null; } }
@@ -453,60 +469,6 @@ const deBase64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 const normalizar = s => String(s).replace(/\s+/g, "").replace(/-/g, "").toLowerCase();
 const agora = () => performance.now();
 function vibrar(ms = 14) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
-
-/* ---------------------------------------------------------------- SHA-256 e HMAC
-   Em http:// o navegador não libera o crypto.subtle, então vai em JavaScript puro.
-   A senha nunca viaja: o PC manda um número aleatório e a página devolve um HMAC dele. */
-const SHA = (() => {
-  const K = new Uint32Array([
-    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]);
-  function hash(bytes) {
-    const n = bytes.length, total = ((n + 9 + 63) >> 6) << 6;
-    const m = new Uint8Array(total);
-    m.set(bytes); m[n] = 0x80;
-    const dv = new DataView(m.buffer);
-    dv.setUint32(total - 8, Math.floor(n / 0x20000000));
-    dv.setUint32(total - 4, (n * 8) >>> 0);
-    const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
-    const W = new Uint32Array(64);
-    for (let o = 0; o < total; o += 64) {
-      for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
-      for (let i = 16; i < 64; i++) {
-        const a = W[i - 15], b = W[i - 2];
-        W[i] = W[i - 16] + ((a >>> 7 | a << 25) ^ (a >>> 18 | a << 14) ^ (a >>> 3)) + W[i - 7]
-             + ((b >>> 17 | b << 15) ^ (b >>> 19 | b << 13) ^ (b >>> 10));
-      }
-      let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
-      for (let i = 0; i < 64; i++) {
-        const t1 = (h + ((e >>> 6 | e << 26) ^ (e >>> 11 | e << 21) ^ (e >>> 25 | e << 7)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
-        const t2 = (((a >>> 2 | a << 30) ^ (a >>> 13 | a << 19) ^ (a >>> 22 | a << 10)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
-        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
-      }
-      H[0] += a; H[1] += b; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
-    }
-    const out = new Uint8Array(32), odv = new DataView(out.buffer);
-    for (let i = 0; i < 8; i++) odv.setUint32(i * 4, H[i]);
-    return out;
-  }
-  function hmac(chave, msg) {
-    if (chave.length > 64) chave = hash(chave);
-    const k = new Uint8Array(64); k.set(chave);
-    const dentro = new Uint8Array(64 + msg.length), fora = new Uint8Array(96);
-    for (let i = 0; i < 64; i++) { dentro[i] = k[i] ^ 0x36; fora[i] = k[i] ^ 0x5c; }
-    dentro.set(msg, 64);
-    fora.set(hash(dentro), 64);
-    return hash(fora);
-  }
-  const hex = b => Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
-  return { hash, hmac, hex };
-})();
 
 /* ---------------------------------------------------------------- estado */
 const S = {
@@ -521,7 +483,7 @@ function nomeAparelho() {
   const ua = navigator.userAgent;
   if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iPad";
   if (/iPhone/.test(ua)) return "iPhone";
-  if (/Android/.test(ua)) return /Mobile/.test(ua) ? "Celular Android" : "Tablet Android";
+  if (/Android/.test(ua)) return (/Mobile/.test(ua) ? "Celular Android" : "Tablet Android") + (NO_APP ? " (app)" : "");
   if (/Windows/.test(ua)) return "Navegador no Windows";
   if (/Mac/.test(ua)) return "Mac";
   return "Navegador";
@@ -530,19 +492,17 @@ function nomeAparelho() {
 /* ---------------------------------------------------------------- tema */
 function aplicarTema(t) {
   document.documentElement.dataset.theme = t;
-  const rot = t === "dark" ? "☀ Claro" : "☾ Escuro";
-  $("#tema").textContent = rot; $("#tema2").textContent = rot;
-  $('meta[name="theme-color"]').content = t === "dark" ? "#1b1f24" : "#f2eee5";
-  if (window.Cursores) Cursores.lerCor();
-  if (window.Tela) Tela.pedir();
+  $("#tema2").textContent = t === "dark" ? "☀ Claro" : "☾ Escuro";
+  $('meta[name="theme-color"]').content = t === "dark" ? "#1a1a2e" : "#f6f7fb";
 }
 function trocarTema() {
   const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   aplicarTema(t); guardar("tema", t);
 }
-aplicarTema(ler("tema") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+aplicarTema(P.tema === "light" || P.tema === "dark" ? P.tema : ler("tema") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
 $("#tema").onclick = trocarTema;
 $("#tema2").onclick = trocarTema;
+if (NO_APP) { $("#tema").hidden = true; $("#tema2").hidden = true; }  // no app, o tema é o do app
 
 /* ---------------------------------------------------------------- avisos rápidos */
 let toastTimer = 0;
@@ -553,165 +513,6 @@ function aviso(texto, ms = 2600) {
   toastTimer = setTimeout(() => t.classList.remove("visivel"), ms);
 }
 
-/* ---------------------------------------------------------------- abertura (a mesma da Ponte KVM)
-   Cursores que andam pela tela e batem uns nos outros, nas bordas, no texto e no seu dedo. */
-const Cursores = (() => {
-  const cv = $("#cursores"), ctx = cv.getContext("2d");
-  const heroi = $(".heroi");
-  const SETA = new Path2D("M1 1v15.5l4.2-4 2.9 6.6 2.6-1.1-2.9-6.5H13.5Z");
-  let W = 0, H = 0, dpr = 1, lista = [], cor = "#8cc7b5", contorno = "#1b1f24", rodando = false, antes = 0;
-  const ponteiro = { x: -999, y: -999, vx: 0, vy: 0, r: 26, t: 0 };
-  function lerCor() {
-    const cs = getComputedStyle(document.documentElement);
-    cor = cs.getPropertyValue("--accent").trim() || cor;
-    contorno = cs.getPropertyValue("--bg").trim() || contorno;
-  }
-  function medir() { dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; }
-  function caixaTexto() { const r = heroi.getBoundingClientRect(), m = 10; return { x0: r.left - m, y0: r.top - m, x1: r.right + m, y1: r.bottom + m }; }
-  function criar() {
-    medir();
-    const n = Math.round(Math.min(22, Math.max(8, W * H / 42000)));
-    const caixa = caixaTexto();
-    lista = [];
-    for (let i = 0; i < n * 30 && lista.length < n; i++) {
-      const s = 17 + Math.random() * 15, r = s * 0.42;
-      const x = r + Math.random() * (W - 2 * r), y = r + Math.random() * (H - 2 * r);
-      const dentro = x > caixa.x0 - r && x < caixa.x1 + r && y > caixa.y0 - r && y < caixa.y1 + r;
-      if (dentro || lista.some(o => Math.hypot(o.x - x, o.y - y) < o.r + r + 4)) continue;
-      const vel = 28 + Math.random() * 34, dir = Math.random() * Math.PI * 2;
-      lista.push({ x, y, s, r, m: s * s, vx: Math.cos(dir) * vel, vy: Math.sin(dir) * vel,
-        base: -0.25 + Math.random() * 0.35, ang: 0, giro: 0, alfa: 0.35 + Math.random() * 0.4, batida: 0 });
-    }
-    lista.forEach(o => o.ang = o.base);
-  }
-  function bater(o, nx, ny, forca) { o.batida = 1; o.giro += (nx * o.vy - ny * o.vx) * 0.012 * forca; }
-  function passo(dt) {
-    const caixa = caixaTexto();
-    for (const o of lista) {
-      o.x += o.vx * dt; o.y += o.vy * dt;
-      if (o.x < o.r) { o.x = o.r; if (o.vx < 0) { o.vx = -o.vx; bater(o, 1, 0, 1); } }
-      if (o.x > W - o.r) { o.x = W - o.r; if (o.vx > 0) { o.vx = -o.vx; bater(o, -1, 0, 1); } }
-      if (o.y < o.r) { o.y = o.r; if (o.vy < 0) { o.vy = -o.vy; bater(o, 0, 1, 1); } }
-      if (o.y > H - o.r) { o.y = H - o.r; if (o.vy > 0) { o.vy = -o.vy; bater(o, 0, -1, 1); } }
-      const cx = Math.max(caixa.x0, Math.min(o.x, caixa.x1)), cy = Math.max(caixa.y0, Math.min(o.y, caixa.y1));
-      let dx = o.x - cx, dy = o.y - cy, d = Math.hypot(dx, dy);
-      if (d < o.r) {
-        if (d === 0) {
-          const lados = [o.x - caixa.x0, caixa.x1 - o.x, o.y - caixa.y0, caixa.y1 - o.y];
-          const i = lados.indexOf(Math.min(...lados));
-          [dx, dy] = [[-1, 0], [1, 0], [0, -1], [0, 1]][i]; d = 1;
-          o.x += dx * (lados[i] + o.r); o.y += dy * (lados[i] + o.r);
-        } else { o.x += dx / d * (o.r - d); o.y += dy / d * (o.r - d); }
-        const nx = dx / d, ny = dy / d, vn = o.vx * nx + o.vy * ny;
-        if (vn < 0) { o.vx -= 2 * vn * nx; o.vy -= 2 * vn * ny; bater(o, nx, ny, 1); }
-      }
-      const px = o.x - ponteiro.x, py = o.y - ponteiro.y, pd = Math.hypot(px, py), lim = o.r + ponteiro.r;
-      if (pd < lim && pd > 0) {
-        const nx = px / pd, ny = py / pd;
-        o.x += nx * (lim - pd); o.y += ny * (lim - pd);
-        const vn = (o.vx - ponteiro.vx) * nx + (o.vy - ponteiro.vy) * ny;
-        if (vn < 0) { o.vx -= 2 * vn * nx; o.vy -= 2 * vn * ny; bater(o, nx, ny, 1.5); }
-      }
-    }
-    for (let i = 0; i < lista.length; i++) {
-      for (let j = i + 1; j < lista.length; j++) {
-        const a = lista[i], b = lista[j];
-        const dx = a.x - b.x, dy = a.y - b.y, d = Math.hypot(dx, dy), lim = a.r + b.r;
-        if (d >= lim || d === 0) continue;
-        const nx = dx / d, ny = dy / d, sobra = lim - d, soma = a.m + b.m;
-        a.x += nx * sobra * b.m / soma; a.y += ny * sobra * b.m / soma;
-        b.x -= nx * sobra * a.m / soma; b.y -= ny * sobra * a.m / soma;
-        const vn = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
-        if (vn >= 0) continue;
-        const imp = -2 * vn / (1 / a.m + 1 / b.m);
-        a.vx += imp / a.m * nx; a.vy += imp / a.m * ny;
-        b.vx -= imp / b.m * nx; b.vy -= imp / b.m * ny;
-        bater(a, nx, ny, 1); bater(b, -nx, -ny, 1);
-      }
-    }
-    for (const o of lista) {
-      const v = Math.hypot(o.vx, o.vy), alvo = Math.max(24, Math.min(v, 120));
-      const k = v > 0 ? 1 + (alvo / v - 1) * Math.min(1, dt * 2) : 1;
-      o.vx *= k; o.vy *= k;
-      o.giro += (o.base - o.ang) * 3 * dt;
-      o.giro *= Math.pow(0.12, dt);
-      o.ang += o.giro * dt * 6;
-      o.batida = Math.max(0, o.batida - dt * 2.5);
-    }
-    ponteiro.vx *= Math.pow(0.02, dt); ponteiro.vy *= Math.pow(0.02, dt);
-  }
-  function desenhar() {
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = cor; ctx.strokeStyle = contorno; ctx.lineJoin = "round";
-    for (const o of lista) {
-      const esc = o.s / 20 * (1 + o.batida * 0.12);
-      ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(o.ang); ctx.scale(esc, esc); ctx.translate(-6, -10);
-      ctx.globalAlpha = Math.min(1, o.alfa + o.batida * 0.35);
-      ctx.lineWidth = 1.4 / esc * 0.9;
-      ctx.stroke(SETA); ctx.fill(SETA);
-      ctx.restore();
-    }
-  }
-  function quadro(t) {
-    if (!rodando) return;
-    const dt = Math.min(0.05, (t - antes) / 1000 || 0);
-    antes = t;
-    for (let k = 0; k < 2; k++) passo(dt / 2);
-    desenhar();
-    requestAnimationFrame(quadro);
-  }
-  addEventListener("resize", () => {
-    if (!rodando) return;
-    medir();
-    for (const o of lista) { o.x = Math.min(Math.max(o.x, o.r), W - o.r); o.y = Math.min(Math.max(o.y, o.r), H - o.r); }
-  });
-  const mexer = e => {
-    const t = agora(), dt = Math.max(0.008, (t - ponteiro.t) / 1000);
-    if (ponteiro.t && dt < 0.2) {
-      ponteiro.vx = clamp((e.clientX - ponteiro.x) / dt, -900, 900);
-      ponteiro.vy = clamp((e.clientY - ponteiro.y) / dt, -900, 900);
-    }
-    ponteiro.x = e.clientX; ponteiro.y = e.clientY; ponteiro.t = t;
-  };
-  $("#landing").addEventListener("pointermove", mexer);
-  $("#landing").addEventListener("pointerdown", mexer);
-  $("#landing").addEventListener("pointerleave", () => { ponteiro.x = ponteiro.y = -999; });
-  $("#landing").addEventListener("pointerup", e => { if (e.pointerType !== "mouse") ponteiro.x = ponteiro.y = -999; });
-  return {
-    lerCor,
-    iniciar() { if (rodando) return; if (!lista.length) criar(); else medir(); lerCor(); rodando = true; antes = agora(); requestAnimationFrame(quadro); },
-    parar() { rodando = false; },
-  };
-})();
-window.Cursores = Cursores;
-Cursores.iniciar();
-
-/* Título digitado como por uma pessoa: ritmo irregular, pausa nos pontos e um erro corrigido. */
-(function digitar() {
-  const alvo = $("#digitado"), bloco = $("#titulo .bloco");
-  const roteiro = [["d", "Seu PC, de qualqe"], ["p", 380], ["a", 1], ["p", 150], ["d", "uer lugar."]];
-  const espera = ms => new Promise(r => setTimeout(r, ms));
-  const tempoTecla = c => {
-    let t = 55 + Math.random() * 85;
-    if (c === " ") t += 40;
-    if (".,".includes(c)) t += 160;
-    if (Math.random() < 0.06) t += 180 + Math.random() * 200;
-    return t;
-  };
-  (async () => {
-    await espera(650);
-    bloco.classList.add("digitando");
-    let anterior = "";
-    for (const [tipo, v] of roteiro) {
-      if (tipo === "p") { bloco.classList.remove("digitando"); await espera(v); bloco.classList.add("digitando"); }
-      else if (tipo === "a") { for (let i = 0; i < v; i++) { alvo.textContent = alvo.textContent.slice(0, -1); await espera(95 + Math.random() * 40); } }
-      else for (const c of v) { await espera(tempoTecla(anterior)); alvo.textContent += c; anterior = c; }
-    }
-    bloco.classList.remove("digitando");
-  })();
-})();
-
 /* ---------------------------------------------------------------- cartão de entrada */
 const Login = {
   estado(e) {
@@ -719,12 +520,15 @@ const Login = {
     const pc = S.pc || "PC";
     const conf = {
       procurando: ["esp", "Procurando o PC…"],
+      longe: ["esp", "Procurando o PC pela internet…"],
       "sem-pc": ["mal", ({
-        "sem-encontro": "Sem internet, ou o ponto de encontro não respondeu.",
-        "sem-caminho": "Achei o PC, mas a rede não deixou um caminho direto. Tente outra rede (Wi-Fi ou dados).",
-        "sem-webrtc": "Este navegador não tem WebRTC. Use o Chrome ou o Safari atualizados.",
-      })[C.motivo] || (SALA ? "O PC não respondeu. Ele está ligado, com o Estenda aberto e o acesso ligado?"
-                            : "Não encontrei o PC. O acesso está ligado no Ponte Remota?")],
+        "sem-encontro": "Sem internet, ou os pontos de encontro não responderam.",
+        "sem-caminho": "Achei o PC, mas a rede não deixou um caminho direto. Tente outra rede (Wi-Fi ou dados do celular).",
+        "sem-webrtc": "Este aparelho não tem WebRTC. Atualize o Android System WebView ou o navegador.",
+        "sem-pc": "O PC não respondeu. Ele está ligado, com o Estenda aberto e o acesso ligado?",
+        "outro-pc": "Nesta rede, esse endereço é de outro computador, e este tablet ainda não foi pareado para usar de longe.",
+      })[C.motivo] || (NO_APP ? "Não encontrei o PC. Ele está ligado, com o Estenda aberto e o acesso ligado? Para usar de longe, pareie uma vez em casa."
+                              : "Não encontrei o PC. O acesso está ligado no Estenda?")],
       senha: ["ok", pc + " · pronto"],
       entrando: ["esp", "Entrando no " + pc + "…"],
       saiu: ["ok", pc + " · você saiu"],
@@ -743,136 +547,131 @@ const Login = {
 /* ---------------------------------------------------------------- conexão */
 const C = { ws: null, nonce: null, nonceUsado: true, senha: null, lembrar: true, convite: null, sair: false,
             tchau: null, negado: false, tentativas: 0, timer: 0, ativo: false, modo: null };
-(() => {  // convite do QR: vem depois do # (não vai para o servidor no pedido da página)
-  const m = location.hash.match(/[#&]c=([A-Za-z0-9_-]+)/);
-  const sala = location.hash.match(/[#&]s=([A-Za-z0-9_-]{16,64})/);
-  if (sala) { try { localStorage.setItem("estenda.sala", sala[1]); } catch (_) {} }
-  if (m) C.convite = m[1];
-  // aberta pelo app Estenda: modo escolhido lá e a chave deste tablet que o app já tinha
-  const modo = location.hash.match(/[#&]modo=(segundo|espelho)/);
-  const api = location.hash.match(/[#&]api=([A-Za-z0-9_-]+)/), apt = location.hash.match(/[#&]apt=([A-Za-z0-9_-]+)/);
-  if (modo) C.modoSegundo = modo[1] === "segundo";
-  if (api && apt && !lerJSON("aparelho")) guardar("aparelho", { id: api[1], token: apt[1] });
-  if (m || sala || modo || api) history.replaceState(null, "", location.pathname + location.search);
+(() => {  // o que veio depois do # (não vai para nenhum servidor) e some do endereço
+  if (P.c) C.convite = P.c;                                   // QR do painel: entra sem senha, uma vez
+  if (P.modo === "segundo" || P.modo === "espelho") C.modoSegundo = P.modo === "segundo";
+  if (P.api && P.apt) guardar("aparelho", { id: P.api, token: P.apt });  // a chave deste tablet que o app guardou
+  if (P.ls) guardar("longe", { s: P.ls, e: P.le ? P.le.split(",").filter(Boolean) : null });
+  if (P.pcid) guardar("pcid", P.pcid);
+  if (P.senha) C.senha = P.senha;                             // só nos testes automáticos
+  if (P.so === "casa" || P.so === "longe") C.so = P.so;       // só nos testes automáticos
+  if (location.hash) try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  if (C.modoSegundo !== undefined) {
+    const chip = $("#modo-chip");
+    chip.hidden = false; chip.classList.toggle("az", C.modoSegundo);
+    chip.querySelector("use").setAttribute("href", C.modoSegundo ? "#i-monitor-celular" : "#i-copia");
+    $("#modo-chip-txt").textContent = C.modoSegundo ? "Segundo monitor" : "Espelhamento";
+  }
+  if (NO_APP) { $("#voltar-app").hidden = false; $("#voltar-app").onclick = () => paraApp({ t: "sair" }); }
 })();
 
 /* ---------------------------------------------------------------- de longe: canal WebRTC direto
-   Aberta pelo ponto de encontro (https://…workers.dev), a página não fala com o PC por WebSocket:
-   o encontro só apresenta os dois, e a conversa vai direto (WebRTC, criptografado de ponta a ponta).
-   O canal imita um WebSocket para o resto da página não precisar saber. */
-/* ---------------------------------------------------------------- virar app (https do ponto de encontro) */
-(() => {
-  const instalado = matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches || navigator.standalone;
-  if (location.protocol !== "https:" || !("serviceWorker" in navigator)) return;
-  navigator.serviceWorker.register("/sw.js").catch(() => {});
-  if (instalado) return;
-  let pedido = null;
-  addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedido = e; $("#instalar").hidden = false; $("#instalar-btn").hidden = false; });
-  addEventListener("appinstalled", () => { $("#instalar").hidden = true; });
-  $("#instalar-btn").onclick = async () => { if (!pedido) return; pedido.prompt(); await pedido.userChoice.catch(() => {}); pedido = null; $("#instalar").hidden = true; };
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
-    $("#instalar").hidden = false; $("#instalar-btn").hidden = true; $("#instalar-ios").hidden = false;
-  }
-})();
-
-const SALA = (() => { try { return localStorage.getItem("estenda.sala"); } catch (_) { return null; } })();
-const ICE = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] }];
-function impressao(sdp) {
-  const m = /a=fingerprint:(\S+) ([0-9A-Fa-f:]+)/.exec(sdp || "");
-  return m ? m[1].toLowerCase() + " " + m[2].toUpperCase() : "";
-}
+   Fora de casa a página não alcança o PC por WebSocket. Os dois trocam uma oferta e uma resposta
+   (cifradas) pelos pontos de encontro e abrem um canal direto, criptografado de ponta a ponta.
+   O canal imita um WebSocket para o resto da página não precisar saber a diferença. */
 class CanalP2P {
-  constructor(sala) {
-    this.readyState = 0; this.binaryType = "arraybuffer"; this.onmessage = null; this.onclose = null;
-    this.motivo = ""; this.vinculo = null; this.partes = []; this.ice = []; this.remoto = false; this.ofertou = false;
+  constructor(longe) {
+    this.readyState = 0; this.binaryType = "arraybuffer"; this.onopen = null; this.onmessage = null; this.onclose = null;
+    this.motivo = ""; this.vinculo = null; this.partes = []; this.ice = []; this.respondeu = false; this.aceita = false;
+    this.n = Base.hex(Base.aleatorio(4)); this.sdp = null; this.teveEncontro = false;
     if (!window.RTCPeerConnection) { this.motivo = "sem-webrtc"; setTimeout(() => this.close(), 0); return; }
-    this.pc = new RTCPeerConnection({ iceServers: ICE });
-    this.dc = this.pc.createDataChannel("ponte", { ordered: true });
-    this.dc.binaryType = "arraybuffer";
-    this.pc.onicecandidate = e => { if (e.candidate) this.sinalizar({ t: "ice", c: e.candidate.toJSON() }); };
-    this.pc.onconnectionstatechange = () => {
-      if (this.pc.connectionState === "failed") { this.motivo = this.motivo || "sem-caminho"; this.close(); }
+    const pc = this.pc = new RTCPeerConnection({ iceServers: Base.ICE });
+    const dc = this.dc = pc.createDataChannel("estenda", { ordered: true });
+    dc.binaryType = "arraybuffer";
+    pc.onconnectionstatechange = () => { if (pc.connectionState === "failed") { this.motivo = this.motivo || "sem-caminho"; this.close(); } };
+    dc.onopen = () => {
+      this.vinculo = utf8("p2p|" + Base.impressao(pc.remoteDescription.sdp) + "|" + Base.impressao(pc.localDescription.sdp));
+      this.readyState = 1; clearTimeout(this.limite); clearInterval(this.repete);
+      this.enc.fechar();  // os pontos de encontro não são mais necessários
+      if (this.onopen) this.onopen();
     };
-    this.dc.onopen = () => {
-      this.vinculo = utf8("p2p|" + impressao(this.pc.remoteDescription.sdp) + "|" + impressao(this.pc.localDescription.sdp));
-      this.readyState = 1; clearTimeout(this.limite);
-      try { this.sinal.close(); } catch (_) {}  // o encontro não é mais necessário
-    };
-    this.dc.onmessage = e => this.receber(e.data);
-    this.dc.onclose = () => this.close();
-    this.sinal = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/sala/" + sala + "?papel=tab");
-    this.sinal.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } this.doEncontro(m); };
-    this.sinal.onclose = () => { if (this.readyState === 0) { this.motivo = this.motivo || "sem-encontro"; this.close(); } };
-    this.limite = setTimeout(() => { this.motivo = this.motivo || (this.remoto ? "sem-caminho" : "sem-pc"); this.close(); }, 25000);
+    dc.onmessage = e => { const m = Base.juntarPartes(this.partes, e.data); if (m !== null && this.onmessage) this.onmessage({ data: m }); };
+    dc.onclose = () => this.close();
+    this.enc = new Base.Encontro({
+      segredo: longe.s, urls: longe.e && longe.e.length ? longe.e : Base.ENCONTROS, papel: "tab",
+      aoMensagem: m => this.recado(m), aoEstado: n => { if (n > 0) { this.teveEncontro = true; this.ofertar(); } },
+    });
+    this.limite = setTimeout(() => {
+      this.motivo = this.motivo || (!this.teveEncontro ? "sem-encontro" : this.respondeu ? "sem-caminho" : "sem-pc"); this.close();
+    }, 25000);
+    this.preparar();
   }
-  sinalizar(obj) { if (this.sinal && this.sinal.readyState === 1) this.sinal.send(JSON.stringify(obj)); }
-  async doEncontro(m) {
+  async preparar() {
     try {
-      if (m.t === "pc") {
-        if (m.on && !this.ofertou) {
-          this.ofertou = true;
-          await this.pc.setLocalDescription(await this.pc.createOffer());
-          this.sinalizar({ t: "oferta", sdp: this.pc.localDescription.sdp });
-        } else if (!m.on && this.readyState === 0) { this.motivo = "sem-pc"; this.close(); }
-      } else if (m.t === "resposta") {
+      await this.pc.setLocalDescription(await this.pc.createOffer());
+      this.sdp = await Base.sdpCompleto(this.pc, 2000);
+      // endereços achados depois da oferta ainda são aproveitados
+      this.pc.onicecandidate = e => { if (e.candidate && this.readyState === 0) this.enc.enviar({ t: "ice", n: this.n, c: e.candidate.toJSON() }); };
+      this.ofertar();
+      this.repete = setInterval(() => this.ofertar(), 3000);  // repete até o PC responder (recados podem se perder)
+    } catch (e) { this.motivo = "sem-webrtc"; this.close(); }
+  }
+  ofertar() { if (this.sdp && this.readyState === 0 && !this.aceita) this.enc.enviar({ t: "oferta", n: this.n, sdp: this.sdp }); }
+  async recado(m) {
+    if (m.de !== "pc" || m.n !== this.n || this.readyState !== 0) return;
+    try {
+      if (m.t === "resposta" && typeof m.sdp === "string" && !this.aceita) {
+        this.aceita = true;
         await this.pc.setRemoteDescription({ type: "answer", sdp: m.sdp });
-        this.remoto = true;
+        this.respondeu = true;
         for (const c of this.ice.splice(0)) this.pc.addIceCandidate(c).catch(() => {});
       } else if (m.t === "ice" && m.c) {
-        if (this.remoto) this.pc.addIceCandidate(m.c).catch(() => {}); else this.ice.push(m.c);
+        if (this.respondeu) this.pc.addIceCandidate(m.c).catch(() => {}); else this.ice.push(m.c);
       }
     } catch (e) { this.motivo = "sem-caminho"; this.close(); }
   }
-  send(dados) {  // em pedaços: byte 0 tem bit 1 = texto e bit 0 = ainda vem mais
-    if (this.readyState !== 1) return;
-    const texto = typeof dados === "string";
-    const bytes = texto ? new TextEncoder().encode(dados) : new Uint8Array(dados);
-    let i = 0;
-    do {
-      const n = Math.min(16000, bytes.length - i), fim = i + n >= bytes.length;
-      const parte = new Uint8Array(n + 1);
-      parte[0] = (texto ? 2 : 0) | (fim ? 0 : 1);
-      parte.set(bytes.subarray(i, i + n), 1);
-      this.dc.send(parte);
-      i += n;
-    } while (i < bytes.length);
-  }
-  receber(dados) {
-    const b = new Uint8Array(dados), flag = b[0];
-    this.partes.push(b.slice(1));
-    if (flag & 1) return;
-    const tam = this.partes.reduce((s, p) => s + p.length, 0), tudo = new Uint8Array(tam);
-    let o = 0;
-    for (const p of this.partes) { tudo.set(p, o); o += p.length; }
-    this.partes = [];
-    if (this.onmessage) this.onmessage({ data: flag & 2 ? new TextDecoder().decode(tudo) : tudo.buffer });
-  }
+  send(dados) { if (this.readyState === 1) Base.enviarPartes(this.dc, dados); }
   close() {
     if (this.readyState === 3) return;
-    this.readyState = 3; clearTimeout(this.limite);
-    if (this.motivo !== "sem-webrtc") {
-      this.sinalizar({ t: "fim" });
-      for (const x of [this.dc, this.pc, this.sinal]) { try { x && x.close(); } catch (_) {} }
-    }
+    const estava = this.readyState;
+    this.readyState = 3; clearTimeout(this.limite); clearInterval(this.repete);
+    if (this.enc) { if (estava === 0) this.enc.enviar({ t: "fim", n: this.n }); const e = this.enc; setTimeout(() => e.fechar(), 300); }
+    for (const x of [this.dc, this.pc]) { try { x && x.close(); } catch (_) {} }
     setTimeout(() => this.onclose && this.onclose(), 0);
   }
 }
 
+/* Primeiro tenta o caminho de casa (rápido); se o PC não responder, tenta de longe. */
 function conectar() {
   clearTimeout(C.timer);
   if (C.ws && C.ws.readyState <= 1) return;
-  C.tchau = null; C.nonce = null; C.nonceUsado = true;
-  let ws;
-  try { ws = SALA ? new CanalP2P(SALA) : new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"); }
-  catch (e) { return fechou(); }
+  C.tchau = null; C.nonce = null; C.nonceUsado = true; C.motivo = "";
+  const longe = lerJSON("longe");
+  const podeLonge = !!(longe && longe.s) && C.so !== "casa";
+  const podeCasa = C.so !== "longe";
+  if (podeCasa) abrirCanal("casa", podeLonge ? () => abrirCanal("longe") : null);
+  else if (podeLonge) abrirCanal("longe");
+  else fechou();
+}
+function abrirCanal(via, seFalhar) {
+  let ws, abriu = false, trocou = false, prazo = 0;
+  try {
+    ws = via === "longe" ? new CanalP2P(lerJSON("longe"))
+      : new WebSocket((!NO_APP && location.protocol === "https:" ? "wss://" : "ws://") + ALVO + "/ws");
+  } catch (e) { if (seFalhar) seFalhar(); else fechou(); return; }
   ws.binaryType = "arraybuffer";
-  C.ws = ws;
+  C.ws = ws; C.via = via;
+  if (via === "longe" && !S.naSessao && !C.sair) Login.estado("longe");
+  const outroCaminho = () => {
+    if (abriu || trocou || ws !== C.ws) return;
+    trocou = true; clearTimeout(prazo);
+    ws.onclose = null; try { ws.close(); } catch (e) {}
+    C.ws = null; seFalhar();
+  };
+  if (seFalhar) prazo = setTimeout(outroCaminho, 2500);  // em casa responde em milissegundos
+  ws.onopen = () => { abriu = true; clearTimeout(prazo); };
   ws.onmessage = e => {
     if (ws !== C.ws) return;
+    abriu = true; clearTimeout(prazo);
     if (typeof e.data === "string") { let m; try { m = JSON.parse(e.data); } catch (_) { return; } mensagem(m); }
-    else Video.quadro(e.data);
+    else { QUADROS++; Video.quadro(e.data); }
   };
-  ws.onclose = () => { if (ws === C.ws) { C.motivo = ws.motivo || ""; fechou(); } };
+  ws.onclose = () => {
+    clearTimeout(prazo);
+    if (ws !== C.ws) return;
+    if (!abriu && seFalhar && !trocou) { trocou = true; C.ws = null; seFalhar(); return; }
+    C.motivo = ws.motivo || ""; fechou();
+  };
 }
 function enviar(obj) { const ws = C.ws; if (ws && ws.readyState === 1 && C.ativo) ws.send(JSON.stringify(obj)); }
 function enviarCru(obj) { const ws = C.ws; if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
@@ -900,8 +699,16 @@ function tentarEntrar() {
 function mensagem(m) {
   switch (m.t) {
     case "ola":
+      if (NO_APP && m.id && ler("pcid") && m.id !== ler("pcid")) {
+        // outra rede em que este mesmo endereço é de outro computador: não é o PC salvo
+        const ws = C.ws; C.ws = null;
+        try { ws.onclose = null; ws.close(); } catch (e) {}
+        if (C.via === "casa" && C.so !== "casa" && lerJSON("longe")) abrirCanal("longe"); else { C.motivo = "outro-pc"; fechou(); }
+        break;
+      }
+      C.pcid = m.id || null;
       C.nonce = deBase64(m.nonce); C.nonceUsado = false; S.pc = m.pc || "PC";
-      document.title = "Ponte Remota · " + S.pc;
+      document.title = "Estenda · " + S.pc;
       if (C.sair) Login.estado("saiu"); else tentarEntrar();
       break;
     case "bem_vindo": entrou(m); break;
@@ -934,7 +741,12 @@ function mensagem(m) {
 
 function entrou(m) {
   C.ativo = true; C.tentativas = 0; C.convite = null; C.negado = false;
-  if (m.aparelho) guardar("aparelho", m.aparelho);
+  if (m.aparelho) { guardar("aparelho", m.aparelho); paraApp({ t: "aparelho", id: m.aparelho.id, token: m.aparelho.token }); }
+  if (C.pcid) guardar("pcid", C.pcid);
+  // o segredo para achar este PC de longe (só chega depois de entrar): fica guardado para a próxima vez
+  if (m.longe && m.longe.s) guardar("longe", m.longe); else if (m.longe === null) apagar("longe");
+  if (m.longe !== undefined) paraApp({ t: "longe", s: m.longe ? m.longe.s : null, e: m.longe ? m.longe.e : null, pcid: C.pcid });
+  paraApp({ t: "pc", nome: m.pc || S.pc });
   S.pc = m.pc || S.pc; S.monitores = m.monitores || []; S.monitor = m.monitor || 0;
   S.energia = !!m.energia; S.via = m.via || "";
   if (C.modoSegundo) {  // modo Segundo monitor: a primeira tela que não é a principal
@@ -950,7 +762,7 @@ function entrou(m) {
 
 function negado(m) {
   C.negado = true;
-  if (m.motivo === "aparelho") { apagar("aparelho"); Login.erro("Este aparelho foi esquecido no PC. Entre com a senha."); }
+  if (m.motivo === "aparelho") { apagar("aparelho"); paraApp({ t: "esquecido" }); Login.erro("Este aparelho foi esquecido no PC. Entre com a senha."); }
   else if (m.motivo === "convite") { C.convite = null; Login.erro("Esse QR já foi usado ou venceu. Gere outro no PC ou digite a senha."); }
   else if (m.motivo === "bloqueado") { C.senha = null; Login.erro("Muitas tentativas erradas. Espere " + (m.espera || 30) + " s e tente de novo."); }
   else { C.senha = null; Login.erro("Senha errada. Confira no PC (maiúsculas, espaços e hífens não importam)."); }
@@ -1538,7 +1350,7 @@ const Barra = (() => {
     t.textContent = ms;
     p.className = !C.ativo ? "mal" : S.rtt != null && S.rtt > 160 ? "esp" : "ok";
     $("#puxador-txt").textContent = ms;
-    $("#estat").textContent = [S.via === "tailscale" ? "via Tailscale" : S.via === "local" ? "rede de casa (sem cifra)" : S.via === "loopback" ? "este PC" : S.via,
+    $("#estat").textContent = [S.via === "tailscale" ? "via Tailscale" : S.via === "local" ? "rede de casa" : S.via === "loopback" ? "este PC" : S.via === "p2p" ? "de longe, direto e criptografado" : S.via,
       S.fbW ? S.fbW + "×" + S.fbH : "", (parado ? 0 : S.qps) + " fps", ms, S.kbps + " kB/s"].filter(Boolean).join(" · ");
   }
   $$("#barra [data-acao]").forEach(b => b.addEventListener("click", () => {
@@ -1561,6 +1373,7 @@ const Barra = (() => {
   bTeclado.addEventListener("pointerdown", e => e.preventDefault());
   bTeclado.addEventListener("mousedown", e => e.preventDefault());
   pintarModo();
+  if (NO_APP) $('#barra [data-acao="cheia"]').hidden = true;  // o app já ocupa a tela toda
   return { mostrar, recolher, agendar, tocouNaTela, marcar, stats, pintarModo };
 })();
 
@@ -1761,7 +1574,6 @@ const Sessao = (() => {
     $("#cobertura").hidden = true;
     if (primeira) {
       $("#landing").classList.add("saindo");
-      Cursores.parar();
       $("#sessao").hidden = false;
       document.body.style.overflow = "hidden";
       setTimeout(() => { $("#landing").hidden = true; }, 360);
@@ -1795,7 +1607,6 @@ const Sessao = (() => {
     document.body.style.overflow = "";
     $("#landing").hidden = false;
     requestAnimationFrame(() => $("#landing").classList.remove("saindo"));
-    Cursores.iniciar();
   }
   function sair() {
     C.sair = true;
@@ -1805,6 +1616,7 @@ const Sessao = (() => {
     if (ws) try { ws.close(); } catch (e) {}
     voltarParaEntrada();
     Login.estado("saiu");
+    paraApp({ t: "sair" });  // no app, sair fecha esta tela e volta ao início
   }
   function voltarAoLogin() { voltarParaEntrada(); Login.estado("senha"); }
   return { abrir, reconectando, encerrada, sair, voltarAoLogin };
@@ -1816,6 +1628,10 @@ document.addEventListener("visibilitychange", () => {
 });
 
 /* ---------------------------------------------------------------- começo */
+if (NO_APP) setInterval(() => paraApp({
+  t: "estado", sessao: !!(S.naSessao && C.ativo), via: C.ativo ? S.via : "", quadros: QUADROS, fps: S.qps,
+  tela: S.fbW ? S.fbW + "x" + S.fbH : "", motivo: C.motivo || "",
+}), 2000);
 Login.estado("procurando");
 conectar();
 </script>

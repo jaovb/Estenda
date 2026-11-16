@@ -218,6 +218,8 @@ const Base = (() => {
   }
 
   /* ---------------------------------------------------------------- WebRTC: utilidades */
+  // pontos de encontro usados quando o PC não informou outros (a mesma lista do comum.py)
+  const ENCONTROS = ["wss://broker.emqx.io:8084/mqtt", "wss://broker.hivemq.com:8884/mqtt", "wss://test.mosquitto.org:8081/mqtt"];
   const ICE = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] }];
   function impressao(sdp) {
     const m = /a=fingerprint:(\S+) ([0-9A-Fa-f:]+)/.exec(sdp || "");
@@ -257,6 +259,6 @@ const Base = (() => {
     return marca & 2 ? texto(tudo) : tudo.buffer;
   }
 
-  return { utf8, texto, hex, aleatorio, derivar, selar, abrir, Mqtt, Encontro, ICE, impressao, sdpCompleto, enviarPartes, juntarPartes };
+  return { utf8, texto, hex, aleatorio, derivar, selar, abrir, Mqtt, Encontro, ENCONTROS, ICE, impressao, sdpCompleto, enviarPartes, juntarPartes };
 })();
 if (typeof module !== "undefined") module.exports = { SHA, Base };

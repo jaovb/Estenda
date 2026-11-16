@@ -54,25 +54,10 @@ ARQUIVOS = {"/": ("painel.html", "text/html; charset=utf-8"),
             "/index.html": ("painel.html", "text/html; charset=utf-8"),
             "/icone.png": ("icone.png", "image/png"),
             "/ponte.html": ("ponte.html", "text/html; charset=utf-8"),
-            "/fontes/SpaceGrotesk.ttf": ("fontes/SpaceGrotesk.ttf", "font/ttf"),
-            "/fontes/JetBrainsMono.ttf": ("fontes/JetBrainsMono.ttf", "font/ttf")}
+            "/base.js": ("base.js", "text/javascript; charset=utf-8")}
 PADRAO = {"porta": comum.PORTA_PADRAO, "so_tailscale": False, "permitir_energia": True, "nao_dormir": True,
-          "encontro": ""}  # endereço do ponto de encontro (Cloudflare Worker) para usar de longe
+          "longe": True}  # aceitar o tablet de fora de casa (conexão direta; ver comum.ENCONTROS)
 
-
-def _url_encontro(v) -> str:
-    """https://algo.workers.dev (sem barra no fim). http só para testes no próprio PC."""
-    v = str(v or "").strip().rstrip("/")
-    if not v:
-        return ""
-    if "://" not in v:
-        v = "https://" + v
-    u = urlparse(v)
-    local = u.hostname in ("127.0.0.1", "localhost")
-    if u.scheme not in ("https", "http") or (u.scheme == "http" and not local) or not u.hostname \
-            or u.path not in ("", "/") or u.query or u.fragment:
-        raise ErroUsuario("Use o endereço que o publicar.bat mostrou, como https://estenda-encontro.SEU-NOME.workers.dev")
-    return f"{u.scheme}://{u.netloc}"
 
 
 # ---------------------------------------------------------------- terminal e registro
@@ -192,11 +177,15 @@ class App:
                                             socket.gethostname())
         self.uso = comum.ler_json("uso.json", {})  # dia -> segundos com algum aparelho conectado
         self.remoto.ao_fim_sessao = self._somar_uso
-        # de longe: a sala deste PC no ponto de encontro (o id vai no QR; a chave fica só aqui)
-        self.sala = comum.ler_json("longe.json", {})
-        if not (self.sala.get("sala") and self.sala.get("chave")):
-            self.sala = {"sala": secrets.token_urlsafe(18), "chave": secrets.token_urlsafe(32)}
-            comum.salvar_json("longe.json", self.sala, secreto=True)
+        # de longe: o segredo que cifra os recados de encontro (só aparelhos já pareados recebem)
+        # e um id público deste PC, para o tablet saber que está falando com o PC certo
+        self.longe = comum.ler_json("longe.json", {})
+        if not (self.longe.get("segredo") and self.longe.get("id")):
+            self.longe = {"segredo": secrets.token_urlsafe(32), "id": secrets.token_hex(8)}
+            comum.salvar_json("longe.json", self.longe, secreto=True)
+        self.remoto.id_pc = self.longe["id"]
+        self.remoto.longe_info = lambda: ({"s": self.longe["segredo"], "e": comum.ENCONTROS}
+                                          if self.cfg.get("longe") else None)
         self.remoto.token_ponte = secrets.token_urlsafe(24)
         self.monitor_inst = None     # instalação do monitor virtual: {"estado", "msg"}
         self.ponte_estado = {}       # o que a ponte WebRTC contou da última vez
@@ -268,13 +257,15 @@ class App:
             }
 
     def longe_ativo(self) -> bool:
-        return bool(self.remoto.ligado and self.cfg.get("encontro"))
+        return bool(self.remoto.ligado and self.cfg.get("longe"))
 
     def _estado_longe(self, ligado: bool) -> dict:
         p = self.ponte_estado if time.monotonic() - self.ponte_visto < 12 else {}
-        return {"encontro": self.cfg.get("encontro", ""), "ativo": bool(ligado and self.cfg.get("encontro")),
-                "sinal": p.get("sinal") or ("iniciando" if ligado and self.cfg.get("encontro") else "desligado"),
-                "erro": p.get("erro") or "", "conexoes": p.get("pares", 0)}
+        ativo = bool(ligado and self.cfg.get("longe"))
+        return {"ligado": bool(self.cfg.get("longe")), "ativo": ativo,
+                "sinal": p.get("sinal") or ("iniciando" if ativo else "desligado"),
+                "erro": p.get("erro") or "", "conexoes": p.get("pares", 0),
+                "encontros": p.get("encontros", 0), "total": len(comum.ENCONTROS)}
 
     def instalar_monitor(self, d=None) -> None:
         """Instala o driver de monitor virtual (Virtual Display Driver, código aberto) pelo winget.
@@ -332,24 +323,28 @@ class App:
 
     def dados_ponte(self) -> dict:
         """Para a ponte WebRTC (ponte.html): onde se encontrar e como entrar no servidor local."""
-        return {"ativo": self.longe_ativo(), "encontro": self.cfg.get("encontro", ""),
-                "sala": self.sala["sala"], "chave": self.sala["chave"], "porta": self.remoto.porta,
+        return {"ativo": self.longe_ativo(), "segredo": self.longe["segredo"], "encontros": comum.ENCONTROS,
+                "porta": self.remoto.porta,
                 "token": self.remoto.token_ponte}
 
     def estado_ponte(self, d: dict) -> None:
         self.ponte_estado = {"sinal": str(d.get("sinal", ""))[:20], "erro": str(d.get("erro", ""))[:200],
-                             "pares": int(d.get("pares") or 0)}
+                             "pares": int(d.get("pares") or 0), "encontros": int(d.get("encontros") or 0)}
         self.ponte_visto = time.monotonic()
 
     def _qr_apk(self, ligado: bool, end: dict) -> dict | None:
-        """Link + QR para o tablet baixar o app direto do PC (só na rede de casa)."""
+        """Link + QR para instalar o app no tablet: direto deste PC se o APK estiver ao lado do
+        programa (não gasta internet); senão, o da página de downloads."""
         self.remoto.apk = achar_apk()
-        if not (ligado and self.remoto.apk and end.get("local") and not self.cfg["so_tailscale"]):
+        if not ligado:
             return None
-        url = f"http://{end['local'][0]}:{self.remoto.porta}/estenda.apk"
+        if self.remoto.apk and end.get("local") and not self.cfg["so_tailscale"]:
+            url, mb = f"http://{end['local'][0]}:{self.remoto.porta}/estenda.apk", round(self.remoto.apk.stat().st_size / 1048576, 1)
+        else:
+            url, mb = comum.URL_APP, None
         if getattr(self, "_apk_cache", (None,))[0] != url:
             self._apk_cache = (url, qr.svg(url))
-        return {"url": url, "svg": self._apk_cache[1], "mb": round(self.remoto.apk.stat().st_size / 1048576, 1)}
+        return {"url": url, "svg": self._apk_cache[1], "mb": mb}
 
     # --- ações
     def ligar(self, d: dict) -> None:
@@ -391,17 +386,15 @@ class App:
         comum.log("senha trocada (aparelhos lembrados continuam entrando)")
 
     def config(self, d: dict) -> None:
-        novos = {k: bool(d[k]) for k in ("so_tailscale", "permitir_energia", "nao_dormir") if k in d}
-        if "encontro" in d:
-            novos["encontro"] = _url_encontro(d["encontro"])
-            comum.log("acesso de longe: " + (f"ponto de encontro {novos['encontro']}" if novos["encontro"]
-                                              else "desligado"))
+        novos = {k: bool(d[k]) for k in ("so_tailscale", "permitir_energia", "nao_dormir", "longe") if k in d}
+        if "longe" in novos and novos["longe"] != bool(self.cfg.get("longe")):
+            comum.log("acesso de longe " + ("ligado" if novos["longe"] else "desligado"))
         if "porta" in d:
             if self.remoto.ligado:
                 raise ErroUsuario("Desligue o acesso para trocar a porta.")
             novos["porta"] = _porta(d["porta"])
         self._guardar(**novos)
-        if novos.get("so_tailscale") or novos.get("encontro") == "":
+        if novos.get("so_tailscale") or novos.get("longe") is False:
             self.remoto.aplicar_filtro()
         if "iniciar_windows" in d:
             try:
@@ -415,16 +408,9 @@ class App:
             if not self.remoto.ligado:
                 raise ErroUsuario("Ligue o acesso primeiro.")
             end = self.enderecos.obter()
-            via = d.get("via") if d.get("via") in ("tailscale", "local", "longe") else None
+            via = d.get("via") if d.get("via") in ("tailscale", "local") else None
             if via is None:
-                via = "tailscale" if end["tailscale"] else "local"
-            if via == "longe":
-                if not self.cfg.get("encontro"):
-                    raise ErroUsuario("Configure o ponto de encontro primeiro (Configurações → De longe).")
-                token, validade = self.remoto.novo_convite()
-                url = f"{self.cfg['encontro']}/#s={self.sala['sala']}&c={token}"
-                self.convite = (url, qr.svg(url), time.time() + validade, via)
-                return
+                via = "local" if end["local"] and not self.cfg["so_tailscale"] else "tailscale"
             ips = end["tailscale"] if via == "tailscale" else end["local"]
             if not ips:
                 raise ErroUsuario("O Tailscale não está ligado neste PC." if via == "tailscale"
@@ -638,8 +624,8 @@ class Ponte:
                 "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
                 # mostra os IPs reais (e não nomes .local) ao tablet: facilita achar o caminho direto
                 "--disable-features=WebRtcHideLocalIpsWithMdns,Translate", self.url]
-        if sys.platform.startswith("linux") and hasattr(os, "geteuid") and os.geteuid() == 0:
-            args.insert(1, "--no-sandbox")
+        if sys.platform.startswith("linux") and (os.geteuid() == 0 or os.environ.get("PONTE_REMOTA_SIMULAR")):
+            args.insert(1, "--no-sandbox")  # (Linux só é usado nos testes)
         try:
             self.proc = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                          stderr=subprocess.DEVNULL, creationflags=comum.SEM_JANELA)

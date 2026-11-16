@@ -264,21 +264,20 @@ code { font-family: Consolas, monospace; font-size: 13px; color: var(--lavanda-f
     <p class="dica" id="conectar-off" style="margin:0">Ligue o acesso para ver o endereço e a senha.</p>
     <div id="conectar-on" hidden>
       <div id="enderecos"></div>
-      <p class="dica">No app Estenda, este PC aparece sozinho em <b>Dispositivos</b> quando os dois estão no mesmo Wi-Fi.</p>
-      <div class="qr-bloco" id="apk-bloco" hidden>
+            <div class="qr-bloco" id="apk-bloco" hidden>
         <div class="qr" id="qr-apk"></div>
         <div class="qr-texto">
-          <strong>Instalar o app no tablet Android</strong>
-          <p>Aponte a câmera do tablet: ele baixa o app <span id="apk-mb"></span> direto deste PC. Na primeira vez, o Android pede para permitir instalar apps desta origem: toque em <b>Configurações</b> e ligue a opção.</p>
+          <strong>1. Instale o app no tablet (Android)</strong>
+          <p id="apk-txt"></p>
+          <p style="margin-top:8px"><b>2.</b> Abra o Estenda no tablet, ainda no Wi-Fi de casa: este PC aparece sozinho. Digite a senha acima uma vez. Depois disso ele entra sozinho, em casa <b>e de longe</b>.</p>
         </div>
       </div>
-      <p class="dica" id="apk-falta" hidden>Ainda sem o app no tablet? Gere o APK com <code>app_tablet\gerar_apk.bat</code> e o QR para instalar aparece aqui.</p>
       <div class="qr-bloco">
         <div class="qr" id="qr"><div class="qr-vazio">gerando…</div></div>
         <div class="qr-texto">
           <strong id="qr-tit">Abrir no tablet</strong>
           <p id="qr-txt"></p>
-          <div class="seg" id="qr-via"><button data-via="longe">App (casa e longe)</button><button data-via="local">Navegador · Wi-Fi</button><button data-via="tailscale">Tailscale</button></div>
+          <div class="seg" id="qr-via"><button data-via="local">Wi-Fi de casa</button><button data-via="tailscale">Tailscale</button></div>
           <p class="qr-estado" id="qr-estado"></p>
           <button class="btn-peq" id="qr-novo" style="margin-top:8px">Gerar outro</button>
         </div>
@@ -311,14 +310,8 @@ code { font-family: Consolas, monospace; font-size: 13px; color: var(--lavanda-f
     <div class="opcao"><div class="txt"><strong>Iniciar com o Windows</strong><span>Liga o acesso sozinho quando você entra na conta.</span></div><label class="switch peq"><input type="checkbox" data-cfg="iniciar_windows"><span class="trilho"></span></label></div>
     <div class="opcao"><div class="txt"><strong>Não deixar o PC dormir</strong><span>Enquanto o acesso estiver ligado.</span></div><label class="switch peq"><input type="checkbox" data-cfg="nao_dormir"><span class="trilho"></span></label></div>
     <div class="opcao"><div class="txt"><strong>Desligar e reiniciar pelo tablet</strong><span>Sempre com 10 segundos para cancelar.</span></div><label class="switch peq"><input type="checkbox" data-cfg="permitir_energia"><span class="trilho"></span></label></div>
+    <div class="opcao"><div class="txt"><strong>Usar de longe (pela internet)</strong><span>Conexão direta entre o tablet e o PC, só para aparelhos já pareados.</span></div><label class="switch peq"><input type="checkbox" data-cfg="longe"><span class="trilho"></span></label></div>
     <div class="opcao"><div class="txt"><strong>Só aceitar pelo Tailscale</strong><span>Desliga a entrada pelo Wi-Fi de casa.</span></div><label class="switch peq"><input type="checkbox" data-cfg="so_tailscale"><span class="trilho"></span></label></div>
-  </section>
-  <p class="secao">De longe (pela internet)</p>
-  <section class="card">
-    <p class="dica" style="margin:0">Para usar fora de casa e instalar o app no tablet ou no iPhone, publique uma vez o seu ponto de encontro grátis: rode <code>encontro\publicar.bat</code> e cole aqui o endereço que ele mostrar. A imagem e o controle vão direto entre o tablet e o PC; o encontro só apresenta os dois.</p>
-    <label class="campo">Endereço do ponto de encontro<input id="encontro" placeholder="https://estenda-encontro.seu-nome.workers.dev" autocomplete="off" spellcheck="false"></label>
-    <div class="linha-botoes"><button class="btn-sec" id="salvar-encontro">Salvar</button><button class="btn-sec" id="tirar-encontro">Desligar o acesso de longe</button></div>
-    <p class="erro" id="erro-encontro"></p>
   </section>
   <p class="secao">Senha e porta</p>
   <section class="card">
@@ -350,9 +343,10 @@ code { font-family: Consolas, monospace; font-size: 13px; color: var(--lavanda-f
     <p>Depois, em Configurações do Windows › Sistema › Tela, deixe em <b>Estender estas telas</b> e arraste a tela nova para o lado do monitor principal. No tablet, escolha <b>Segundo monitor</b>.</p>
     <p>Se o botão não funcionar: baixe o instalador em github.com/VirtualDrivers/Virtual-Display-Driver (Releases), abra o "Virtual Driver Control" e clique em Install.</p>
   </section>
-  <section class="card"><h3>De longe e app no tablet</h3>
-    <p>Uma vez só: dê dois cliques em <code>encontro\publicar.bat</code>. Ele instala o que faltar, abre o navegador para você entrar (ou criar, grátis) na conta da Cloudflare e configura o Estenda sozinho.</p>
-    <p>A conexão é direta entre o tablet e o PC (WebRTC, criptografada). Em algumas redes, sobretudo 4G/5G com os dois lados atrás de NAT restrito, o caminho direto pode não abrir; aí use outro Wi-Fi.</p>
+  <section class="card"><h3>De longe</h3>
+    <p>Funciona sozinho, sem configurar nada: pareie o app uma vez em casa e depois use de qualquer lugar com internet. O PC precisa estar ligado, com o Estenda aberto e o acesso ligado.</p>
+    <p>A imagem e o controle vão <b>direto</b> entre o tablet e o PC (WebRTC, criptografado). Para os dois se acharem, eles trocam um recado curto e cifrado por servidores públicos de recados; nada da sua tela passa por lá.</p>
+    <p>Em algumas redes, sobretudo 4G/5G, o caminho direto pode não abrir. Aí o app avisa: tente outra rede.</p>
   </section>
   <section class="card"><h3>Se não conectar</h3>
     <p>Confira se o acesso está ligado e se o PC e o tablet estão no mesmo Wi-Fi.</p>
@@ -373,7 +367,7 @@ code { font-family: Consolas, monospace; font-size: 13px; color: var(--lavanda-f
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const TOKEN = new URLSearchParams(location.search).get("t") || "";
-let ultimoEncontro, E = null, viaQR = null, pedindoQR = false, erroQR = "", preenchido = false;
+let E = null, viaQR = null, pedindoQR = false, erroQR = "", preenchido = false;
 
 /* ---------------------------------------------------------------- tema (sistema, claro, escuro) */
 const sistemaEscuro = matchMedia("(prefers-color-scheme: dark)");
@@ -435,8 +429,6 @@ $("#fechar-antigo").onclick = e => acao("/api/ligar", { fechar_antigo: true }, e
 $$("[data-cfg]").forEach(c => c.onchange = () => acao("/api/config", { [c.dataset.cfg]: c.checked }, null, $("#erro-opcoes")));
 $("#sortear").onclick = e => acao("/api/senha", {}, e.currentTarget, $("#erro-opcoes"));
 $("#salvar-senha").onclick = async e => { if (await acao("/api/senha", { senha: $("#senha-nova").value }, e.currentTarget, $("#erro-opcoes"))) $("#senha-nova").value = ""; };
-$("#salvar-encontro").onclick = async e => { if (await acao("/api/config", { encontro: $("#encontro").value }, e.currentTarget, $("#erro-encontro"))) { $("#encontro").value = E.config.encontro; viaQR = "longe"; pedirQR(); } };
-$("#tirar-encontro").onclick = async e => { if (await acao("/api/config", { encontro: "" }, e.currentTarget, $("#erro-encontro"))) { $("#encontro").value = ""; viaQR = "local"; pedirQR(); } };
 $("#salvar-porta").onclick = e => acao("/api/config", { porta: $("#porta").value.trim() }, e.currentTarget, $("#erro-opcoes"));
 $("#encerrar").onclick = async e => { e.currentTarget.disabled = true; try { await api("/api/encerrar", {}); } catch (_) {} setTimeout(() => { $("#fechado").hidden = false; }, 600); };
 $("#criar-monitor").onclick = e => acao("/api/monitor/instalar", {}, e.currentTarget, $("#monitor-msg"));
@@ -484,7 +476,7 @@ function mudarSe(no, chave, fazer) { if (no.dataset.k !== chave) { no.dataset.k 
 function render() {
   if (!E) return;
   const ligado = E.ligado, end = E.enderecos || {};
-  if (!preenchido) { $("#porta").value = E.config.porta; $("#encontro").value = E.config.encontro || ""; preenchido = true; }
+  if (!preenchido) { $("#porta").value = E.config.porta; preenchido = true; }
 
   // avisos (inclui pedido de desligar vindo do tablet)
   const falta = E.energia ? Math.max(0, Math.round(E.energia.prazo - Date.now() / 1000)) : null;
@@ -509,11 +501,11 @@ function render() {
 
   // de longe
   const L = E.longe || {};
-  const [cl, tl] = !L.encontro ? ["", "De longe: desligado. Veja em Configurações."]
+  const [cl, tl] = !L.ligado ? ["", "De longe: desligado (Configurações)."]
     : !ligado ? ["", "De longe: pronto para quando ligar o acesso."]
-    : L.sinal === "pronto" ? ["ok", "De longe: pronto. O app acha este PC de qualquer lugar."]
-    : L.sinal === "erro" ? ["mal", "De longe: " + (L.erro || "sem conexão com o ponto de encontro.")]
-    : ["esp", "De longe: conectando ao ponto de encontro…"];
+    : L.sinal === "pronto" ? ["ok", `De longe: pronto (${L.encontros} de ${L.total} pontos de encontro)` + (L.conexoes ? ` · ${L.conexoes} em uso` : "")]
+    : L.sinal === "erro" ? ["mal", "De longe: " + (L.erro || "sem contato com os pontos de encontro.")]
+    : ["esp", "De longe: preparando…"];
   $("#longe-ponto").className = "ponto-st " + cl;
   $("#longe-txt").textContent = tl;
 
@@ -550,24 +542,13 @@ function render() {
       l.push(linha("Senha", E.senha));
       $("#enderecos").replaceChildren(...l);
     });
-    const temLonge = !!(E.config.encontro);
-    if (temLonge && ultimoEncontro !== E.config.encontro && ultimoEncontro !== undefined) { viaQR = "longe"; if (!pedindoQR) setTimeout(pedirQR, 0); }
-    ultimoEncontro = E.config.encontro;
-    if (document.activeElement !== $("#encontro") && preenchido) $("#encontro").value = E.config.encontro || "";
-    $("#qr-via").hidden = [temLonge, temLocal, temTs].filter(Boolean).length < 2;
-    $('#qr-via [data-via="longe"]').hidden = !temLonge;
-    $('#qr-via [data-via="local"]').hidden = !temLocal;
-    $('#qr-via [data-via="tailscale"]').hidden = !temTs;
-    if (!viaQR || (viaQR === "tailscale" && !temTs) || (viaQR === "local" && !temLocal) || (viaQR === "longe" && !temLonge))
-      viaQR = temLonge ? "longe" : temLocal ? "local" : "tailscale";
+    $("#qr-via").hidden = !(temLocal && temTs);
+    if (!viaQR || (viaQR === "tailscale" && !temTs) || (viaQR === "local" && !temLocal)) viaQR = temLocal ? "local" : "tailscale";
     const via = conv ? conv.via : viaQR;
-    $("#qr-tit").textContent = via === "longe" ? "Instalar e parear o app (Android ou iPhone)"
-      : via === "tailscale" ? "Abrir pelo Tailscale" : "Abrir no navegador (só em casa)";
-    $("#qr-txt").textContent = via === "longe"
-      ? "Aponte a câmera do tablet ou do celular: abre o Estenda, entra sem senha e depois funciona em casa e de longe. Toque em Instalar para ganhar o ícone. O QR vale 10 min para ser lido, uma vez; depois a conexão não tem limite e o aparelho fica lembrado."
-      : "Aponte a câmera do tablet: abre a página no navegador e entra sem senha. O QR vale 10 min para ser lido, uma vez; depois a conexão não tem limite e o aparelho fica lembrado.";
+    $("#qr-tit").textContent = via === "tailscale" ? "Sem o app: navegador pelo Tailscale" : "Sem o app (ou no iPhone): use o navegador";
+    $("#qr-txt").textContent = "Aponte a câmera: abre a tela do PC no navegador e entra sem senha. Só funciona no Wi-Fi de casa. O QR vale 10 min para ser lido, uma vez.";
     $$("#qr-via button").forEach(b => b.setAttribute("aria-pressed", b.dataset.via === viaQR));
-    if (!conv && !pedindoQR && !erroQR && (temTs || temLocal || temLonge)) pedirQR();
+    if (!conv && !pedindoQR && !erroQR && (temTs || temLocal)) pedirQR();
     mudarSe($("#qr"), conv ? conv.url + conv.usado + conv.vencido : "vazio" + erroQR, () => {
       const qr = $("#qr");
       if (conv) {
@@ -586,8 +567,11 @@ function render() {
   // instalar o app pelo QR
   const apk = ligado ? E.apk : null;
   $("#apk-bloco").hidden = !apk;
-  $("#apk-falta").hidden = !ligado || !!apk || E.config.so_tailscale;
-  if (apk) { mudarSe($("#qr-apk"), apk.url, () => { $("#qr-apk").innerHTML = apk.svg; }); $("#apk-mb").textContent = `(${apk.mb} MB)`; }
+  if (apk) {
+    mudarSe($("#qr-apk"), apk.url, () => { $("#qr-apk").innerHTML = apk.svg; });
+    $("#apk-txt").textContent = (apk.mb ? `Aponte a câmera do tablet: ele baixa o app (${apk.mb} MB) direto deste PC.` : "Aponte a câmera do tablet: ele baixa o app Estenda.")
+      + " Ao abrir o arquivo, o Android pede para permitir a instalação: toque em Configurações e ligue a opção.";
+  }
 
   // aparelhos
   mudarSe($("#aparelhos"), JSON.stringify([E.sessoes, E.aparelhos, ligado]), () => {

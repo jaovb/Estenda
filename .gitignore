@@ -3,3 +3,4 @@ build/
 dist/
 *.spec
 instalador_log.txt
+testes/saida/

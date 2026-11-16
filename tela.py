@@ -237,7 +237,11 @@ class _CapturaSimulada:
             self.f_tit = ImageFont.truetype(str(base / "SpaceGrotesk.ttf"), 22)
             self.f_mono = ImageFont.truetype(str(base / "JetBrainsMono.ttf"), 22)
         except OSError:
-            self.f_txt = self.f_tit = self.f_mono = ImageFont.load_default()
+            try:  # sem as fontes do projeto: a fonte embutida do Pillow, em tamanho legível
+                self.f_txt, self.f_tit = ImageFont.load_default(26), ImageFont.load_default(22)
+                self.f_mono = self.f_tit
+            except TypeError:
+                self.f_txt = self.f_tit = self.f_mono = ImageFont.load_default()
         self._fundos = {}
 
     def _fundo(self, w, h, tom):

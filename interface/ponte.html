@@ -6,15 +6,16 @@
 </head>
 <body>
 <p>Ponte de longe do Estenda. Esta página roda sem janela e é controlada pelo app.</p>
+<script src="/base.js"></script>
 <script>
 "use strict";
 /* Liga o tablet (de longe) ao servidor deste PC:
      tablet ⇄ WebRTC direto ⇄ esta página ⇄ ws://127.0.0.1/ws-ponte ⇄ servidor local
-   O ponto de encontro só serve para os dois trocarem oferta, resposta e endereços. */
+   Os pontos de encontro (base.js) só servem para os dois trocarem a oferta e a resposta, cifradas. */
 const TOKEN = new URLSearchParams(location.search).get("t") || "";
-const ICE = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] }];
-let cfg = null, sinal = null, sinalEstado = "desligado", erro = "", espera = 1000, timerSinal = 0;
+let cfg = null, encontro = null, sinalEstado = "desligado", erro = "", semLinha = 0;
 const pares = new Map();  // id do tablet no encontro -> par
+const MAX_PARES = 12;
 
 async function api(caminho, corpo) {
   const op = { headers: { "X-Token": TOKEN } };
@@ -24,39 +25,13 @@ async function api(caminho, corpo) {
   return r.json();
 }
 function contar() {
-  api("/api/ponte/estado", { sinal: sinalEstado, erro, pares: [...pares.values()].filter(p => p.local && p.local.readyState === 1).length }).catch(() => {});
+  api("/api/ponte/estado", {
+    sinal: sinalEstado, erro, encontros: encontro ? encontro.conectados : 0,
+    pares: [...pares.values()].filter(p => p.local && p.local.readyState === 1).length,
+  }).catch(() => {});
 }
 setInterval(contar, 4000);
-
-/* ---------------------------------------------------------------- impressões digitais e fragmentos */
-function impressao(sdp) {
-  const m = /a=fingerprint:(\S+) ([0-9A-Fa-f:]+)/.exec(sdp || "");
-  return m ? m[1].toLowerCase() + " " + m[2].toUpperCase() : "";
-}
-const MAX_PARTE = 16000;
-function enviarPartes(dc, dados) {  // byte 0: bit 1 = é texto, bit 0 = ainda vem mais
-  const texto = typeof dados === "string";
-  const bytes = texto ? new TextEncoder().encode(dados) : new Uint8Array(dados);
-  let i = 0;
-  do {
-    const n = Math.min(MAX_PARTE, bytes.length - i), fim = i + n >= bytes.length;
-    const parte = new Uint8Array(n + 1);
-    parte[0] = (texto ? 2 : 0) | (fim ? 0 : 1);
-    parte.set(bytes.subarray(i, i + n), 1);
-    dc.send(parte);
-    i += n;
-  } while (i < bytes.length);
-}
-function juntarPartes(par, dados) {
-  const b = new Uint8Array(dados), flag = b[0];
-  par.partes.push(b.slice(1));
-  if (flag & 1) return null;
-  const tam = par.partes.reduce((s, p) => s + p.length, 0), tudo = new Uint8Array(tam);
-  let o = 0;
-  for (const p of par.partes) { tudo.set(p, o); o += p.length; }
-  par.partes = [];
-  return flag & 2 ? new TextDecoder().decode(tudo) : tudo.buffer;
-}
+function mudar(estado, texto) { if (estado !== sinalEstado || (texto || "") !== erro) { sinalEstado = estado; erro = texto || ""; contar(); } }
 
 /* ---------------------------------------------------------------- um tablet */
 function fecharPar(id) {
@@ -80,31 +55,36 @@ async function ipDoTablet(pc) {
   } catch (_) { return "de longe"; }
 }
 async function oferta(m) {
-  fecharPar(m.de);
-  const pc = new RTCPeerConnection({ iceServers: ICE });
-  const par = { pc, dc: null, local: null, fila: [], partes: [], ice: [], remoto: false };
-  pares.set(m.de, par);
-  par.limite = setTimeout(() => { if (!par.local) fecharPar(m.de); }, 30000);
-  pc.onicecandidate = e => { if (e.candidate) enviarSinal({ t: "ice", para: m.de, c: e.candidate.toJSON() }); };
-  pc.onconnectionstatechange = () => { if (["failed", "closed"].includes(pc.connectionState) && pares.get(m.de) === par) fecharPar(m.de); };
+  const id = m.de;
+  const velho = pares.get(id);
+  if (velho) {  // o tablet repete a oferta até ouvir a resposta: reenvia a mesma, sem recomeçar
+    if (velho.n === m.n) { if (velho.resposta) encontro.enviar(velho.resposta, id); return; }
+    fecharPar(id);
+  }
+  if (pares.size >= MAX_PARES) return;
+  const pc = new RTCPeerConnection({ iceServers: Base.ICE });
+  const par = { pc, n: m.n, dc: null, local: null, fila: [], partes: [], ice: [], remoto: false, resposta: null };
+  pares.set(id, par);
+  par.limite = setTimeout(() => { if (!par.local) fecharPar(id); }, 35000);
+  pc.onconnectionstatechange = () => { if (["failed", "closed"].includes(pc.connectionState) && pares.get(id) === par) fecharPar(id); };
   pc.ondatachannel = e => {
     const dc = par.dc = e.channel;
     dc.binaryType = "arraybuffer";
     dc.onmessage = ev => {
-      const msg = juntarPartes(par, ev.data);
+      const msg = Base.juntarPartes(par.partes, ev.data);
       if (msg === null) return;
       if (par.local && par.local.readyState === 1) par.local.send(msg); else par.fila.push(msg);
     };
-    dc.onclose = () => { if (pares.get(m.de) === par) fecharPar(m.de); };
+    dc.onclose = () => { if (pares.get(id) === par) fecharPar(id); };
     const abrir = async () => {
       // o vínculo prova ao servidor que a senha foi usada NESTE canal (e não num canal trocado no meio)
-      const v = "p2p|" + impressao(pc.localDescription.sdp) + "|" + impressao(pc.remoteDescription.sdp);
+      const v = "p2p|" + Base.impressao(pc.localDescription.sdp) + "|" + Base.impressao(pc.remoteDescription.sdp);
       const ip = await ipDoTablet(pc);
       const ws = par.local = new WebSocket(`ws://127.0.0.1:${cfg.porta}/ws-ponte?t=${encodeURIComponent(cfg.token)}&v=${encodeURIComponent(v)}&ip=${encodeURIComponent(ip)}`);
       ws.binaryType = "arraybuffer";
       ws.onopen = () => { clearTimeout(par.limite); for (const x of par.fila.splice(0)) ws.send(x); contar(); };
-      ws.onmessage = ev => { if (dc.readyState === "open") enviarPartes(dc, ev.data); };
-      ws.onclose = () => { if (pares.get(m.de) === par) fecharPar(m.de); };
+      ws.onmessage = ev => { if (dc.readyState === "open") Base.enviarPartes(dc, ev.data); };
+      ws.onclose = () => { if (pares.get(id) === par) fecharPar(id); };
     };
     if (dc.readyState === "open") abrir(); else dc.onopen = abrir;
   };
@@ -113,55 +93,54 @@ async function oferta(m) {
     par.remoto = true;
     for (const c of par.ice.splice(0)) pc.addIceCandidate(c).catch(() => {});
     await pc.setLocalDescription(await pc.createAnswer());
-    enviarSinal({ t: "resposta", para: m.de, sdp: pc.localDescription.sdp });
+    const sdp = await Base.sdpCompleto(pc, 2000);
+    if (pares.get(id) !== par) return;
+    par.resposta = { t: "resposta", n: m.n, sdp };
+    encontro.enviar(par.resposta, id);
+    // endereços achados depois da resposta ainda são aproveitados
+    pc.onicecandidate = e => { if (e.candidate && encontro) encontro.enviar({ t: "ice", n: m.n, c: e.candidate.toJSON() }, id); };
   } catch (e) {
-    fecharPar(m.de);
+    fecharPar(id);
   }
 }
-
-/* ---------------------------------------------------------------- ponto de encontro */
-function enviarSinal(obj) { if (sinal && sinal.readyState === 1) sinal.send(JSON.stringify(obj)); }
-function mudar(estado, texto) { if (estado !== sinalEstado || (texto || "") !== erro) { sinalEstado = estado; erro = texto || ""; contar(); } }
-function conectarSinal() {
-  clearTimeout(timerSinal);
-  if (!cfg || !cfg.ativo || sinal) return;
-  mudar("conectando");
-  const base = cfg.encontro.replace(/^http/, "ws");
-  const ws = sinal = new WebSocket(`${base}/sala/${cfg.sala}?papel=pc&k=${encodeURIComponent(cfg.chave)}`);
-  let abriu = false, ping = 0;
-  ws.onopen = () => { abriu = true; espera = 1000; mudar("pronto"); ping = setInterval(() => ws.send('{"t":"ping"}'), 25000); };
-  ws.onmessage = e => {
-    let m; try { m = JSON.parse(e.data); } catch (_) { return; }
-    if (m.t === "oferta" && typeof m.sdp === "string") oferta(m);
-    else if (m.t === "ice" && m.c) {
-      const p = pares.get(m.de);
-      if (p) p.remoto ? p.pc.addIceCandidate(m.c).catch(() => {}) : p.ice.push(m.c);
-    } else if (m.t === "fim") { const p = pares.get(m.de); if (p && !p.local) fecharPar(m.de); }
-  };
-  ws.onclose = e => {
-    clearInterval(ping);
-    if (sinal !== ws) return;
-    sinal = null;
-    if (!cfg || !cfg.ativo) return mudar("desligado");
-    mudar("erro", e.code === 4000 ? "Outro Estenda entrou nesta sala."
-      : abriu ? "Caiu a conexão com o ponto de encontro. Tentando de novo…"
-      : "Não consegui falar com o ponto de encontro. Confira o endereço e a internet.");
-    timerSinal = setTimeout(conectarSinal, espera);
-    espera = Math.min(60000, espera * 2);
-  };
+function recado(m) {
+  if (!m || typeof m.de !== "string" || m.de === "pc") return;
+  if (m.t === "oferta" && typeof m.sdp === "string") oferta(m);
+  else if (m.t === "ice" && m.c) {
+    const p = pares.get(m.de);
+    if (p && p.n === m.n) p.remoto ? p.pc.addIceCandidate(m.c).catch(() => {}) : p.ice.push(m.c);
+  } else if (m.t === "fim") { const p = pares.get(m.de); if (p && !p.local) fecharPar(m.de); }
 }
+
+/* ---------------------------------------------------------------- pontos de encontro */
+function ligarEncontro() {
+  if (!cfg || !cfg.ativo || encontro) return;
+  mudar("conectando");
+  semLinha = Date.now();
+  encontro = new Base.Encontro({
+    segredo: cfg.segredo, urls: cfg.encontros, papel: "pc", aoMensagem: recado,
+    aoEstado: n => {
+      if (n > 0) { semLinha = 0; mudar("pronto"); }
+      else { if (!semLinha) semLinha = Date.now(); mudar("conectando"); }
+    },
+  });
+}
+setInterval(() => {  // nenhum ponto de encontro respondendo há um tempo: avisa (e continua tentando)
+  if (encontro && semLinha && Date.now() - semLinha > 15000)
+    mudar("erro", "Sem contato com os pontos de encontro. Confira a internet deste PC.");
+}, 3000);
 function fecharTudo() {
-  clearTimeout(timerSinal);
-  if (sinal) { const s = sinal; sinal = null; try { s.close(); } catch (_) {} }
+  if (encontro) { encontro.fechar(); encontro = null; }
   for (const id of [...pares.keys()]) fecharPar(id);
 }
 
 async function vigiar() {
   try {
     const novo = await api("/api/ponte");
-    const mudou = !cfg || novo.encontro !== cfg.encontro || novo.sala !== cfg.sala || novo.porta !== cfg.porta || novo.ativo !== cfg.ativo;
+    const mudou = !cfg || novo.segredo !== cfg.segredo || novo.porta !== cfg.porta || novo.ativo !== cfg.ativo
+      || JSON.stringify(novo.encontros) !== JSON.stringify(cfg.encontros);
     cfg = novo;
-    if (mudou) { fecharTudo(); espera = 1000; if (cfg.ativo) conectarSinal(); else mudar("desligado"); }
+    if (mudou) { fecharTudo(); if (cfg.ativo) ligarEncontro(); else mudar("desligado"); }
   } catch (_) {
     fecharTudo();  // o app fechou
   }
