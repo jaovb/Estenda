@@ -181,6 +181,11 @@ const Base = (() => {
     }
     get total() { return this.linhas.length; }
     get conectados() { return this.linhas.filter(l => l.mqtt && l.mqtt.pronto).length; }
+    /** Para diagnóstico: quais servidores estão ligados e quantos recados passaram. */
+    get diag() {
+      return { on: this.linhas.filter(l => l.mqtt && l.mqtt.pronto).map(l => l.url.split("/")[2].split(".")[1] || l.url),
+               saiu: this.nSaiu || 0, chegou: this.nChegou || 0, recusado: this.nRecusado || 0 };
+    }
     _ligar(l) {
       if (this.fechado) return;
       l.mqtt = new Mqtt(l.url, {
@@ -197,7 +202,9 @@ const Base = (() => {
     _estado() { if (this.aoEstado && !this.fechado) this.aoEstado(this.conectados, this.total); }
     _recado(dados) {
       const m = abrir(this.k, dados);
-      if (!m || typeof m._i !== "string" || this.vistos.has(m._i)) return;
+      if (!m) { this.nRecusado = (this.nRecusado || 0) + 1; return; }
+      if (typeof m._i !== "string" || this.vistos.has(m._i)) return;
+      this.nChegou = (this.nChegou || 0) + 1;
       this.vistos.add(m._i);
       if (this.vistos.size > 600) this.vistos = new Set([...this.vistos].slice(-300));
       delete m._i;
@@ -209,6 +216,7 @@ const Base = (() => {
       const recado = selar(this.k, { ...obj, de: this.papel === "pc" ? "pc" : this.id, _i: hex(aleatorio(8)) });
       let n = 0;
       for (const l of this.linhas) if (l.mqtt && l.mqtt.publicar(topico, recado)) n++;
+      if (n) this.nSaiu = (this.nSaiu || 0) + 1;
       return n;
     }
     fechar() {

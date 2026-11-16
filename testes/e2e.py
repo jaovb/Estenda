@@ -305,7 +305,11 @@ async def papel_pc(args):
         pc.api("/api/ligar", {})
         e = pc.esperar(lambda e: e["longe"]["sinal"] == "pronto", 60)
         conferir(bool(e), "PC: de longe pronto", json.dumps((e or pc.api("/api/estado"))["longe"]))
-        e = pc.esperar(lambda e: any(s["tipo"] == "p2p" and s["fps"] > 0 for s in e["sessoes"]), args.espera)
+        fim, e = time.time() + args.espera, None
+        while time.time() < fim and not e:
+            e = pc.esperar(lambda e: any(s["tipo"] == "p2p" and s["fps"] > 0 for s in e["sessoes"]), 30)
+            if not e:
+                print("       diagnóstico do PC:", json.dumps(pc.api("/api/estado")["longe"].get("diag")), flush=True)
         conferir(bool(e), "PC: um tablet entrou de longe, vindo de outra rede", str(e and [(s["nome"], s["ip"], s["fps"]) for s in e["sessoes"]]))
         if e:
             time.sleep(12)  # deixa o outro lado medir
@@ -326,7 +330,8 @@ async def papel_tablet(args):
             pg = await abrir(nav, pagina, app="1", pc="10.255.255.1:24860", modo="espelho", so="longe", ls=args.segredo, senha=args.senha, pcid=ID_PC)
             est = await esperar_sessao(pg, 35)
             if not est:
-                print(f"tentativa {n}: {await pg.inner_text('#pc-texto')}", flush=True)
+                ult = (await msgs(pg, "estado")) or [{}]
+                print(f"tentativa {n}: {await pg.inner_text('#pc-texto')} | diag: {json.dumps(ult[-1].get('diag'))}", flush=True)
                 await pg.context.close()
         conferir(bool(est), f"tablet: entrou de longe em outra rede (tentativa {n})", json.dumps(est))
         if est:

@@ -14,6 +14,7 @@
    Os pontos de encontro (base.js) só servem para os dois trocarem a oferta e a resposta, cifradas. */
 const TOKEN = new URLSearchParams(location.search).get("t") || "";
 let cfg = null, encontro = null, sinalEstado = "desligado", erro = "", semLinha = 0;
+const D = { ofertas: 0, respostas: 0, ice: [] };  // diagnóstico
 const pares = new Map();  // id do tablet no encontro -> par
 const MAX_PARES = 12;
 
@@ -27,6 +28,7 @@ async function api(caminho, corpo) {
 function contar() {
   api("/api/ponte/estado", {
     sinal: sinalEstado, erro, encontros: encontro ? encontro.conectados : 0,
+    diag: { ...(encontro ? encontro.diag : {}), ofertas: D.ofertas, respostas: D.respostas, ice: D.ice.slice(-6) },
     pares: [...pares.values()].filter(p => p.local && p.local.readyState === 1).length,
   }).catch(() => {});
 }
@@ -62,7 +64,9 @@ async function oferta(m) {
     fecharPar(id);
   }
   if (pares.size >= MAX_PARES) return;
+  D.ofertas++;
   const pc = new RTCPeerConnection({ iceServers: Base.ICE });
+  pc.oniceconnectionstatechange = () => { D.ice.push(pc.iceConnectionState); contar(); };
   const par = { pc, n: m.n, dc: null, local: null, fila: [], partes: [], ice: [], remoto: false, resposta: null };
   pares.set(id, par);
   par.limite = setTimeout(() => { if (!par.local) fecharPar(id); }, 35000);
@@ -97,6 +101,7 @@ async function oferta(m) {
     if (pares.get(id) !== par) return;
     par.resposta = { t: "resposta", n: m.n, sdp };
     encontro.enviar(par.resposta, id);
+    D.respostas++;
     // endereços achados depois da resposta ainda são aproveitados
     pc.onicecandidate = e => { if (e.candidate && encontro) encontro.enviar({ t: "ice", n: m.n, c: e.candidate.toJSON() }, id); };
   } catch (e) {

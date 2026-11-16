@@ -622,10 +622,17 @@ class CanalP2P {
       }
     } catch (e) { this.motivo = "sem-caminho"; this.close(); }
   }
+  get diag() {
+    let cand = 0;
+    try { cand = (this.sdp || "").split("a=candidate:").length - 1; } catch (e) {}
+    return { ...(this.enc ? this.enc.diag : {}), resp: this.respondeu, ice: this.pc ? this.pc.iceConnectionState : "", cand,
+             tipos: [...new Set(((this.sdp || "").match(/typ \w+/g) || []).map(x => x.slice(4)))].join(","), motivo: this.motivo };
+  }
   send(dados) { if (this.readyState === 1) Base.enviarPartes(this.dc, dados); }
   close() {
     if (this.readyState === 3) return;
     const estava = this.readyState;
+    C.ultimoDiag = this.diag;
     this.readyState = 3; clearTimeout(this.limite); clearInterval(this.repete);
     if (this.enc) { if (estava === 0) this.enc.enviar({ t: "fim", n: this.n }); const e = this.enc; setTimeout(() => e.fechar(), 300); }
     for (const x of [this.dc, this.pc]) { try { x && x.close(); } catch (_) {} }
@@ -1633,6 +1640,7 @@ document.addEventListener("visibilitychange", () => {
 if (NO_APP) setInterval(() => paraApp({
   t: "estado", sessao: !!(S.naSessao && C.ativo), via: C.ativo ? S.via : "", quadros: QUADROS, fps: S.qps,
   tela: S.fbW ? S.fbW + "x" + S.fbH : "", motivo: C.motivo || "",
+  diag: (C.ws && C.ws.diag) || C.ultimoDiag || null,
 }), 2000);
 Login.estado("procurando");
 conectar();

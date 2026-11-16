@@ -3,7 +3,8 @@
 # Uso: testes/android.sh NOME arquivo.apk
 nome=$1; apk=$2; saida=testes/saida; mkdir -p $saida
 pacote=br.unb.ponte.ponte_remota
-adb install -r "$apk" || exit 1
+adb uninstall $pacote >/dev/null 2>&1
+adb install "$apk" || exit 1
 adb logcat -c
 adb shell monkey -p $pacote -c android.intent.category.LAUNCHER 1 >/dev/null
 ok=0

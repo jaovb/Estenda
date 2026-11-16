@@ -265,7 +265,7 @@ class App:
         return {"ligado": bool(self.cfg.get("longe")), "ativo": ativo,
                 "sinal": p.get("sinal") or ("iniciando" if ativo else "desligado"),
                 "erro": p.get("erro") or "", "conexoes": p.get("pares", 0),
-                "encontros": p.get("encontros", 0), "total": len(comum.ENCONTROS)}
+                "encontros": p.get("encontros", 0), "total": len(comum.ENCONTROS), "diag": p.get("diag")}
 
     def instalar_monitor(self, d=None) -> None:
         """Instala o driver de monitor virtual (Virtual Display Driver, código aberto) pelo winget.
@@ -329,7 +329,8 @@ class App:
 
     def estado_ponte(self, d: dict) -> None:
         self.ponte_estado = {"sinal": str(d.get("sinal", ""))[:20], "erro": str(d.get("erro", ""))[:200],
-                             "pares": int(d.get("pares") or 0), "encontros": int(d.get("encontros") or 0)}
+                             "pares": int(d.get("pares") or 0), "encontros": int(d.get("encontros") or 0),
+                             "diag": d.get("diag") if isinstance(d.get("diag"), dict) else None}
         self.ponte_visto = time.monotonic()
 
     def _qr_apk(self, ligado: bool, end: dict) -> dict | None:
