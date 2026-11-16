@@ -51,7 +51,7 @@ class _FolhaPcsState extends State<_FolhaPcs> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text('Computadores', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
-            const Text('No PC, abra o Ponte Remota e ligue o acesso. Ele aparece aqui sozinho quando está no mesmo Wi-Fi.'),
+            const Text('No PC, abra o Estenda e ligue o acesso. Ele aparece aqui sozinho quando está no mesmo Wi-Fi.'),
             if (salvos.isNotEmpty) const RotuloSecao('Salvos'),
             for (final pc in salvos)
               _LinhaPc(
@@ -88,7 +88,7 @@ class _FolhaPcsState extends State<_FolhaPcs> {
                 cor: Pastel.menta,
                 icone: Icons.wifi_rounded,
                 aoTocar: () {
-                  est.adicionarPc(a.nome, a.host, a.porta);
+                  est.adicionarPc(a.nome, a.host, a.porta, pcId: a.id);
                   Navigator.pop(context);
                 },
               ),

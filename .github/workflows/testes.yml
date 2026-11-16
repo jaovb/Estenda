@@ -1,12 +1,16 @@
-# Testes automáticos do Estenda (rodam a cada envio de código).
+# Testes automáticos do Estenda (rodam a cada envio de código). O PC é simulado (sem Windows).
 name: Testes
 on:
   workflow_dispatch:
   push:
 
+env:
+  SEGREDO: estenda-teste-${{ github.run_id }}-${{ github.run_attempt }}
+  SENHA: teste-${{ github.run_id }}
+
 jobs:
   encontros:
-    name: Pontos de encontro públicos (de verdade)
+    name: Pontos de encontro públicos
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,4 +25,108 @@ jobs:
           wss://broker.emqx.io:8084/mqtt
           wss://broker.hivemq.com:8884/mqtt
           wss://test.mosquitto.org:8081/mqtt
-          wss://mqtt.eclipseprojects.io:443/mqtt
+
+  ponta-a-ponta:
+    name: Ponta a ponta (casa, longe, quedas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow playwright
+      - name: Com pontos de encontro simulados
+        run: python testes/e2e.py
+      - name: Com os pontos de encontro públicos de verdade
+        run: python testes/e2e.py --encontros reais
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: telas-ponta-a-ponta
+          path: testes/saida/
+
+  android:
+    name: App nativo no emulador Android (casa e longe)
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow playwright
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Compilar os dois APKs de teste
+        shell: bash
+        run: |
+          cp app_tablet/assinatura/debug.keystore ~/.android/debug.keystore 2>/dev/null || (mkdir -p ~/.android && cp app_tablet/assinatura/debug.keystore ~/.android/)
+          pwsh app_tablet/preparar_android.ps1
+          cd app_tablet && flutter pub get
+          flutter build apk --release --dart-define=ESTENDA_TESTE_PC=10.0.2.2:24860 --dart-define=ESTENDA_TESTE_SENHA=$SENHA
+          cp build/app/outputs/flutter-apk/app-release.apk ../casa.apk
+          flutter build apk --release --dart-define=ESTENDA_TESTE_PC=10.0.2.2:9 --dart-define=ESTENDA_TESTE_SENHA=$SENHA \
+            --dart-define=ESTENDA_TESTE_SO=longe --dart-define=ESTENDA_TESTE_SEGREDO=$SEGREDO \
+            --dart-define=ESTENDA_TESTE_PCID=0123456789abcdef --dart-define=ESTENDA_TESTE_MODO=segundo
+          cp build/app/outputs/flutter-apk/app-release.apk ../longe.apk
+      - name: PC simulado (em segundo plano)
+        run: nohup python testes/e2e.py --papel pc --segredo $SEGREDO --senha $SENHA --espera 1800 > pc.log 2>&1 &
+      - name: Ligar o KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Emulador
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: |
+            bash testes/android.sh casa casa.apk
+            bash testes/android.sh longe longe.apk
+      - name: Registro do PC
+        if: always()
+        run: cat pc.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: telas-android
+          path: testes/saida/
+
+  duas-redes-pc:
+    name: Duas redes · PC (Linux)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow playwright
+      - run: python testes/e2e.py --papel pc --segredo $SEGREDO --senha $SENHA --espera 420
+
+  duas-redes-tablet:
+    name: Duas redes · tablet (macOS, outra rede)
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow playwright
+      - run: python testes/e2e.py --papel tablet --segredo $SEGREDO --senha $SENHA --espera 400
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: telas-duas-redes
+          path: testes/saida/

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../descoberta.dart';
 import '../estado.dart';
 import '../sessao/sessao_web.dart';
 import '../tema.dart';
@@ -22,6 +23,19 @@ class _InicioPaginaState extends State<InicioPagina> with SingleTickerProviderSt
     final ini = (ordem * 0.09).clamp(0.0, 0.5).toDouble();
     return CurvedAnimation(parent: _entrada, curve: Interval(ini, ini + 0.5, curve: Curves.easeOutCubic));
   });
+
+  @override
+  void initState() {
+    super.initState();
+    // procura os PCs salvos na rede: se o roteador deu outro endereço ao PC, atualiza sozinho
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final est = EstadoScope.ler(context);
+      if (est.pcs.every((p) => p.pcId == null)) return;
+      for (final a in await procurarPcs()) {
+        if (a.id != null) est.reencontrar(a.id!, a.host, a.porta);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -153,22 +167,45 @@ class _InicioPaginaState extends State<InicioPagina> with SingleTickerProviderSt
                     ]),
                   ),
                 ),
-                const SizedBox(height: 22),
-                _surgir(
-                  5,
-                  Text(
-                    est.pcs.isEmpty
-                        ? 'No PC, abra o Ponte Remota e ligue o acesso. Depois toque em Dispositivos para encontrá-lo.'
-                        : 'O PC e o tablet precisam estar no mesmo Wi-Fi.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: c.suave, fontSize: 13),
-                  ),
-                ),
+                const SizedBox(height: 18),
+                _surgir(5, _Situacao(pc: est.pcAtual, temPcs: est.pcs.isNotEmpty)),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Uma linha dizendo de onde dá para usar o PC escolhido (só em casa, ou também de longe).
+class _Situacao extends StatelessWidget {
+  const _Situacao({required this.pc, required this.temPcs});
+  final PcSalvo? pc;
+  final bool temPcs;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Cores.of(context);
+    final p = pc;
+    final (cor, icone, texto) = p == null
+        ? (Pastel.lavanda, Icons.wifi_find_rounded,
+            'No PC, abra o Estenda e ligue o acesso. Depois toque em Dispositivos para encontrá-lo no Wi-Fi.')
+        : p.deLonge
+            ? (Pastel.menta, Icons.public_rounded, '${p.nome}: funciona em casa e de longe, pela internet.')
+            : p.lembrado
+                ? (Pastel.azul, Icons.home_rounded,
+                    '${p.nome}: em casa. Para usar de longe, ligue "Usar de longe" no PC e entre uma vez aqui.')
+                : (Pastel.azul, Icons.home_rounded,
+                    '${p.nome}: na primeira vez, entre pelo Wi-Fi de casa com a senha que aparece no PC. Depois funciona também de longe.');
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
+      decoration: BoxDecoration(color: c.preenchimento(cor), borderRadius: BorderRadius.circular(18)),
+      child: Row(children: [
+        Icon(icone, size: 22, color: c.tinta(cor)),
+        const SizedBox(width: 12),
+        Expanded(child: Text(texto, style: TextStyle(color: c.texto, fontSize: 13.5, height: 1.35))),
+      ]),
     );
   }
 }

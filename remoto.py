@@ -231,7 +231,7 @@ class _Descoberta(asyncio.DatagramProtocol):
     def datagram_received(self, dados, addr):
         if dados.strip() != b"PONTE-REMOTA?" or not self.srv._permitido(comum.tipo_de_ip(addr[0])):
             return
-        resp = {"ponte": comum.PROTOCOLO, "pc": self.srv.nome_pc, "porta": self.srv.porta}
+        resp = {"ponte": comum.PROTOCOLO, "pc": self.srv.nome_pc, "porta": self.srv.porta, "id": self.srv.id_pc}
         self.t.sendto(json.dumps(resp, ensure_ascii=False).encode(), addr)
 
 

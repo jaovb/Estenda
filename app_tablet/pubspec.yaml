@@ -1,7 +1,7 @@
 name: ponte_remota
-description: Ponte Remota — o PC no tablet (espelhamento e segundo monitor).
+description: Estenda — o PC no tablet (espelhamento e segundo monitor), em casa e de longe.
 publish_to: 'none'
-version: 1.0.0+1
+version: 2.0.0+1
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  crypto: ^3.0.3
   shared_preferences: ^2.2.3
   webview_flutter: ^4.10.0
 
@@ -19,3 +18,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/web/   # a tela remota (copiada de ../interface pelo preparar_android.ps1)

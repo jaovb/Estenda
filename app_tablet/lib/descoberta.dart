@@ -3,12 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 class PcAchado {
-  PcAchado(this.nome, this.host, this.porta);
+  PcAchado(this.nome, this.host, this.porta, [this.id]);
   final String nome, host;
   final int porta;
+  final String? id; // id público do PC (versões 2.0 em diante)
 }
 
-/// Pergunta na rede "tem algum Ponte Remota aí?" (UDP 24861) e junta as respostas.
+/// Pergunta na rede "tem algum Estenda aí?" (UDP 24861) e junta as respostas.
 Future<List<PcAchado>> procurarPcs({Duration tempo = const Duration(milliseconds: 1800)}) async {
   final achados = <String, PcAchado>{};
   RawDatagramSocket? s;
@@ -24,7 +25,7 @@ Future<List<PcAchado>> procurarPcs({Duration tempo = const Duration(milliseconds
         final j = jsonDecode(utf8.decode(d.data)) as Map;
         if (j['ponte'] != null) {
           achados[d.address.address] =
-              PcAchado('${j['pc']}', d.address.address, (j['porta'] as num?)?.toInt() ?? 24860);
+              PcAchado('${j['pc']}', d.address.address, (j['porta'] as num?)?.toInt() ?? 24860, j['id'] as String?);
         }
       } catch (_) {}
     });

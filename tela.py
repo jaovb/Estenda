@@ -269,7 +269,7 @@ class _CapturaSimulada:
         jx, jy, jw, jh = (120, 120, 1000, 640) if not segunda else (80, 80, 900, 560)
         d.rectangle((jx, jy, jx + jw, jy + jh), fill=(250, 248, 242), outline=(60, 60, 60))
         d.rectangle((jx, jy, jx + jw, jy + 44), fill=(34, 39, 45))
-        d.text((jx + 16, jy + 10), "Bloco de Notas — Ponte Remota (simulado)" if not segunda else "Segunda tela",
+        d.text((jx + 16, jy + 10), "Bloco de Notas — Estenda (simulado)" if not segunda else "Segunda tela",
                font=self.f_tit, fill=(217, 221, 215))
         linhas, atual = [], ""
         for ch in texto + "|":

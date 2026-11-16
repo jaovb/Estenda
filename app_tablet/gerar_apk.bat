@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Ponte Remota - gerando o app do tablet (APK)
+title Estenda - gerando o app do tablet (APK)
 
 where flutter >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0preparar_android.ps1"
 if errorlevel 1 goto erro
 
 echo.
-echo  [2/3] Baixando as bibliotecas (crypto, shared_preferences)...
+echo  [2/3] Baixando as bibliotecas (shared_preferences, webview)...
 call flutter pub get
 if errorlevel 1 goto erro
 

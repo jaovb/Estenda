@@ -5,20 +5,42 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Um computador salvo no app.
 class PcSalvo {
-  PcSalvo({required this.nome, required this.host, this.porta = 24860, this.aparelhoId, this.aparelhoToken});
+  PcSalvo({
+    required this.nome,
+    required this.host,
+    this.porta = 24860,
+    this.aparelhoId,
+    this.aparelhoToken,
+    this.pcId,
+    this.longeSegredo,
+    this.longeEncontros = const [],
+  });
 
   String nome;
   String host;
   int porta;
   String? aparelhoId; // depois da primeira entrada com senha, o PC dá uma chave própria a este tablet
   String? aparelhoToken;
+  String? pcId; // id público do PC: acha o mesmo PC mesmo que o endereço na rede mude
+  String? longeSegredo; // para achar o PC pela internet (só chega depois de entrar)
+  List<String> longeEncontros;
+
+  bool get deLonge => longeSegredo != null && longeSegredo!.isNotEmpty;
 
   String get chave => '$host:$porta';
   String get hostUrl => host.contains(':') ? '[$host]' : host; // IPv6 vai entre colchetes
   bool get lembrado => aparelhoId != null && aparelhoToken != null;
 
-  Map<String, dynamic> toJson() =>
-      {'nome': nome, 'host': host, 'porta': porta, 'aparelhoId': aparelhoId, 'aparelhoToken': aparelhoToken};
+  Map<String, dynamic> toJson() => {
+        'nome': nome,
+        'host': host,
+        'porta': porta,
+        'aparelhoId': aparelhoId,
+        'aparelhoToken': aparelhoToken,
+        'pcId': pcId,
+        'longeSegredo': longeSegredo,
+        'longeEncontros': longeEncontros,
+      };
 
   factory PcSalvo.fromJson(Map<String, dynamic> j) => PcSalvo(
         nome: '${j['nome'] ?? j['host']}',
@@ -26,6 +48,9 @@ class PcSalvo {
         porta: (j['porta'] as num?)?.toInt() ?? 24860,
         aparelhoId: j['aparelhoId'] as String?,
         aparelhoToken: j['aparelhoToken'] as String?,
+        pcId: j['pcId'] as String?,
+        longeSegredo: j['longeSegredo'] as String?,
+        longeEncontros: (j['longeEncontros'] as List?)?.map((e) => '$e').toList() ?? const [],
       );
 }
 
@@ -113,9 +138,18 @@ class Estado extends ChangeNotifier {
 
   void definirTema(ThemeMode t) => mudar(() => tema = t);
 
-  PcSalvo adicionarPc(String nome, String host, int porta) {
+  PcSalvo adicionarPc(String nome, String host, int porta, {String? pcId}) {
     final chave = '$host:$porta';
     for (final p in pcs) {
+      // o mesmo PC (pelo id) com outro endereço: só atualiza o endereço, sem perder a chave
+      if (pcId != null && p.pcId == pcId && p.chave != chave) {
+        mudar(() {
+          p.host = host;
+          p.porta = porta;
+          atual = p.chave;
+        });
+        return p;
+      }
       if (p.chave == chave) {
         mudar(() {
           if (nome.isNotEmpty) p.nome = nome;
@@ -124,7 +158,7 @@ class Estado extends ChangeNotifier {
         return p;
       }
     }
-    final novo = PcSalvo(nome: nome.isEmpty ? host : nome, host: host, porta: porta);
+    final novo = PcSalvo(nome: nome.isEmpty ? host : nome, host: host, porta: porta, pcId: pcId);
     mudar(() {
       pcs.add(novo);
       atual = chave;
@@ -139,6 +173,20 @@ class Estado extends ChangeNotifier {
 
   void escolherPc(PcSalvo pc) => mudar(() => atual = pc.chave);
 
+  /// Achou na rede um PC já salvo (pelo id) num endereço novo: atualiza sem pedir nada.
+  void reencontrar(String pcId, String host, int porta) {
+    for (final p in pcs) {
+      if (p.pcId == pcId && (p.host != host || p.porta != porta)) {
+        final eraAtual = atual == p.chave;
+        mudar(() {
+          p.host = host;
+          p.porta = porta;
+          if (eraAtual) atual = p.chave;
+        });
+      }
+    }
+  }
+
   void renomearPc(PcSalvo pc, String nome) {
     if (pc.nome != nome && nome.isNotEmpty) mudar(() => pc.nome = nome);
   }
@@ -151,6 +199,7 @@ class Estado extends ChangeNotifier {
   void esquecerAparelho(PcSalvo pc) => mudar(() {
         pc.aparelhoId = null;
         pc.aparelhoToken = null;
+        pc.longeSegredo = null;
       });
 }
 

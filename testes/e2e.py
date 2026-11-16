@@ -18,6 +18,15 @@ SEM_PROXY = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 falhas = []
 
 
+def achar_chrome():
+    for c in (os.environ.get("CHROME"), shutil.which("google-chrome"), shutil.which("chromium"),
+              "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+              r"C:\Program Files\Google\Chrome\Application\chrome.exe"):
+        if c and os.path.isfile(c):
+            return c
+    raise RuntimeError("Chrome não encontrado (defina CHROME)")
+
+
 def conferir(cond, nome, detalhe=""):
     print(("ok     " if cond else "FALHOU ") + nome + (f"  [{detalhe}]" if detalhe else ""), flush=True)
     if not cond:
@@ -158,7 +167,7 @@ async def teste_completo(args):
         conferir(e["longe"]["encontros"] >= 1 and e["apk"] and "github.com" in e["apk"]["url"], "painel: pontos de encontro contados e QR do app",
                  f"{e['longe']['encontros']}/{e['longe']['total']}")
         async with async_playwright() as pw:
-            nav = await pw.chromium.launch(executable_path=shutil.which("google-chrome"), args=["--no-sandbox", "--no-proxy-server",
+            nav = await pw.chromium.launch(executable_path=achar_chrome(), args=["--no-sandbox", "--no-proxy-server",
                                            "--disable-features=WebRtcHideLocalIpsWithMdns"])
 
             # ---- A. primeira vez, em casa: senha, e o app recebe a chave do aparelho e o segredo de longe
@@ -310,7 +319,7 @@ async def papel_tablet(args):
     SAIDA.mkdir(exist_ok=True)
     pagina = servir_pagina()
     async with async_playwright() as pw:
-        nav = await pw.chromium.launch(executable_path=shutil.which("google-chrome"), args=["--no-sandbox"])
+        nav = await pw.chromium.launch(executable_path=achar_chrome(), args=["--no-sandbox"])
         fim, est, pg, n = time.time() + args.espera, None, None, 0
         while time.time() < fim and not est:
             n += 1

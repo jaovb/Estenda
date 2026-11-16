@@ -462,6 +462,8 @@ let QUADROS = 0;
 function guardar(k, v) { try { localStorage.setItem(PREF + k, typeof v === "string" ? v : JSON.stringify(v)); } catch (e) {} }
 function ler(k, padrao = null) { try { const v = localStorage.getItem(PREF + k); return v === null ? padrao : v; } catch (e) { return padrao; } }
 function lerJSON(k) { try { return JSON.parse(ler(k)); } catch (e) { return null; } }
+// preferências escolhidas nas Configurações do app (valem antes de ler o estado abaixo)
+if (NO_APP) for (const [k, de] of [["modo", "toque"], ["qualidade", "q"], ["fps", "fps"], ["velocidade", "vel"]]) if (P[de]) guardar(k, P[de]);
 function apagar(k) { try { localStorage.removeItem(PREF + k); } catch (e) {} }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const utf8 = s => new TextEncoder().encode(s);
@@ -553,7 +555,7 @@ const C = { ws: null, nonce: null, nonceUsado: true, senha: null, lembrar: true,
   if (P.api && P.apt) guardar("aparelho", { id: P.api, token: P.apt });  // a chave deste tablet que o app guardou
   if (P.ls) guardar("longe", { s: P.ls, e: P.le ? P.le.split(",").filter(Boolean) : null });
   if (P.pcid) guardar("pcid", P.pcid);
-  if (P.senha) C.senha = P.senha;                             // só nos testes automáticos
+  if (P.senha) { C.senha = P.senha; C.lembrar = true; }      // só nos testes automáticos
   if (P.so === "casa" || P.so === "longe") C.so = P.so;       // só nos testes automáticos
   if (location.hash) try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
   if (C.modoSegundo !== undefined) {

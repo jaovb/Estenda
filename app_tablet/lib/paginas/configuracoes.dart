@@ -82,7 +82,7 @@ class ConfiguracoesPagina extends StatelessWidget {
                               est.esquecerAparelho(pc);
                               mostrarAviso(context, 'Na próxima vez, ${pc.nome} vai pedir a senha.');
                             },
-                            child: const Text('Pedir senha'),
+                            child: const Text('Esquecer chave'),
                           ),
                         IconButton(
                           onPressed: () => est.removerPc(pc),
@@ -151,7 +151,7 @@ class ConfiguracoesPagina extends StatelessWidget {
                   ),
                 ]),
                 const SizedBox(height: 24),
-                Center(child: Text('Ponte Remota 1.0', style: TextStyle(color: c.suave, fontSize: 12))),
+                Center(child: Text('Estenda 2.0', style: TextStyle(color: c.suave, fontSize: 12))),
               ],
             ),
           ),
