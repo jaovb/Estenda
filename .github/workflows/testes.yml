@@ -1,0 +1,24 @@
+# Testes automáticos do Estenda (rodam a cada envio de código).
+name: Testes
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  encontros:
+    name: Pontos de encontro públicos (de verdade)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Cada servidor conecta e entrega um recado cifrado?
+        env:
+          SO_INFORMAR: "1"
+        run: >
+          node testes/teste_base.mjs
+          wss://broker.emqx.io:8084/mqtt
+          wss://broker.hivemq.com:8884/mqtt
+          wss://test.mosquitto.org:8081/mqtt
+          wss://mqtt.eclipseprojects.io:443/mqtt

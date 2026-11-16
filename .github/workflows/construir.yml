@@ -38,6 +38,7 @@ jobs:
           name: Estenda-PC
           path: dist/Estenda.exe
       - name: Publicar em Releases
+        if: github.ref == 'refs/heads/main'   # só a versão principal vira download
         uses: softprops/action-gh-release@v2
         with:
           tag_name: pc-${{ github.run_number }}

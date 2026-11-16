@@ -44,6 +44,7 @@ jobs:
           name: Estenda-apk
           path: Estenda.apk
       - name: Publicar em Releases
+        if: github.ref == 'refs/heads/main'   # só a versão principal vira download
         uses: softprops/action-gh-release@v2
         with:
           tag_name: tablet-${{ github.run_number }}
