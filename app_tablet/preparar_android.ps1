@@ -43,6 +43,13 @@ if ((Test-Path $gp) -and -not (Select-String -Path $gp -Pattern "kotlin.incremen
     Add-Content $gp "`nkotlin.incremental=false"
 }
 
+# o verificador "lint" do Android trava ao analisar a biblioteca do WebView (erro interno dele, não
+# do app): desliga só essa verificação na compilação final
+$bg = @("android/build.gradle.kts", "android/build.gradle") | Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($bg -and -not (Select-String -Path $bg -Pattern "lintVital" -Quiet)) {
+    Add-Content $bg "`nsubprojects {`n    tasks.matching { it.name.contains(`"lintVital`") }.configureEach { enabled = false }`n}"
+}
+
 $icone = "../interface/icone-512.png"
 if (Test-Path $icone) {
     Get-ChildItem "android/app/src/main/res" -Directory -Filter "mipmap-*" | ForEach-Object {
